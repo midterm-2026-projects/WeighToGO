@@ -1,234 +1,136 @@
-```markdown
-# Health Trends Dashboard Development Plan
+# Web-Based Health Monitoring for Barangay Nutrition Scholars (BNS)
 
-## Week 1
-
-### Day 1: Build Health Trends KPI Cards and Filter Controls
-
-#### Task Description
-Develop KPI card components and dropdown filter controls for the Health Trends Dashboard.
-
-#### Sub-Tasks
-- Create KPI card components for:
-  - Healthy Status
-  - Deficit Status
-  - Excess Status
-- Implement dropdown filter controls for:
-  - Barangay
-  - Age
-  - Nutritional Indicator
-
-#### Deliverables
-- KPI card components for Healthy, Deficit, and Excess statuses.
-- Dropdown filter controls for Barangay, Age, and Nutritional Indicator.
-
-#### Acceptance Criteria
-- The dashboard displays KPI cards for Healthy, Deficit, and Excess statuses.
-- The dashboard provides dropdown filter controls for Barangay, Age, and Nutritional Indicator.
+## 📋 Project Overview
+* **Objective #:** 1
+* **Owner:** Cielo A. Tadas
+* **Description:** This objective establishes the centralized health record lifecycle and automated analytics pipeline for tracking early childhood development at the barangay level. It encompasses building the persistent primary layout shell, multi-variable filtering headers for the Masterlist, dynamic tabbed management modals for individual child profiles, and backend database aggregation logic for monthly nutritional dashboards.
 
 ---
 
-## Week 2
+## 🗓️ 5-Week Implementation Roadmap
 
-### Day 1: Develop Line Chart and Bar Graph for Health Trends Dashboard
-
-#### Task Description
-Create visualizations to monitor nutritional trends and compare health issues across barangays.
-
-#### Sub-Tasks
-- Initialize a line chart to visualize monthly nutritional cases.
-- Construct a bar graph to compare health issues across barangays.
-- Implement dropdown filters for:
-  - Age Group
-  - Status
-
-#### Deliverables
-- Line chart visualizing monthly nutritional cases.
-- Bar graph comparing health issues across barangays.
-
-#### Acceptance Criteria
-- The line chart includes filter options for specific nutritional cases.
-- The line chart displays the number of nutritional cases on hover.
-- The bar graph accurately compares health issues across barangays.
+### ⏳ Week 1: Foundation & Navigation
+#### Day 1: Build Side Navigation and Child Masterlist Page
+* **Sub-Tasks:**
+  * Build Main Side Navigation UI.
+  * Implement Masterlist Header Controls.
+* **Deliverables:**
+  * A functional, styled side navigation bar rendering correctly on the main layout.
+  * Interactive search, filter dropdowns, and a primary action button ready for state management.
+* **PR Acceptance Criteria:**
+  * The navigation component renders correctly and ensures seamless routing between Kids Masterlist, Monthly Report, and Logout views.
+  * The header includes a functional search bar, Purok dropdown, Checkup Status dropdown, and an "Add New Child" button ready for state management.
 
 ---
 
-### Day 2: Integrate Interactive Barangay Map
+### ⏳ Week 2: User Interface & Component Building
+#### Day 1: Registration Module UI
+* **Sub-Tasks:**
+  * Create "Register New Child" Modal.
+  * Develop Registration Form Interface.
+* **Deliverables:**
+  * A toggleable modal component that opens and closes smoothly over the masterlist.
+  * A complete frontend registration form capable of capturing and holding local user input.
+* **PR Acceptance Criteria:**
+  * The modal toggle functionality works smoothly over the masterlist when triggered by the header button.
+  * The internal form successfully captures Full Name, Gender, Birthdate, Parents/Guardian, and Purok inputs upon the save action.
 
-#### Task Description
-Develop an interactive map for visualizing barangay nutritional risk levels.
-
-#### Sub-Tasks
-- Embed a Leaflet map viewport centered on the target municipality.
-- Implement dynamic color-coded map markers based on nutritional risk levels:
-  - Red (High Risk)
-  - Yellow (Moderate Risk)
-  - Green (Low Risk)
-
-#### Deliverables
-- Leaflet map viewport centered on the target municipality.
-- Dynamic color-coded map markers.
-
-#### Acceptance Criteria
-- The map displays the target municipality correctly.
-- Map markers dynamically change color according to nutritional risk levels.
-
----
-
-## Week 3
-
-### Day 1: Build Insight Side Panel UI
-
-#### Task Description
-Create a side panel that displays detailed health insights when a barangay marker is selected.
-
-#### Sub-Tasks
-- Create a slide-out side panel that opens when a barangay map marker is clicked.
-- Design layout sections for:
-  - Health data summaries
-  - Action indicators
-
-#### Deliverables
-- Slide-out side panel UI.
-- Structured layout zones for health insights.
-
-#### Acceptance Criteria
-- Clicking a barangay marker opens the side panel.
-- The side panel displays health summaries and action indicators.
+#### Day 2: Masterlist Rendering and Management Interface
+* **Sub-Tasks:**
+  * Construct Masterlist Data Table.
+  * Build "Manage" Profile Modal.
+* **Deliverables:**
+  * A fully formatted UI table displaying static or mocked child records.
+  * A multi-tab modal component that successfully switches views between profile details, assessment inputs, and past data tables.
+* **PR Acceptance Criteria:**
+  * The table correctly maps and displays columns for Name, Parent, Gender, Age, Purok, Status, and Action using static/mock data.
+  * The modal dynamically switches views between Personal Info, Monthly Assessment, and Checkup History tabs without layout breakage.
 
 ---
 
-### Day 2: Develop API Endpoint for KPI Metrics and Filter Controls
+### ⏳ Week 3: Dashboard Layout & Core API
+#### Day 1: Monthly Barangay Report Dashboard
+* **Sub-Tasks:**
+  * Develop Summary Metric Cards.
+  * Create Masterlist Report Data Table.
+* **Deliverables:**
+  * Four styled top-level summary cards ready to display aggregated data.
+  * A detailed, wide-format report table component structured to display the month's specific assessment data.
+* **PR Acceptance Criteria:**
+  * Four top-level cards are styled and positioned to display Total Registered, Normal, Malnourished/Stunted, and Obese metrics.
+  * The wide-format table successfully structures columns specifically tailored for expanded nutritional metrics (WFA, HFA, WFL/H).
 
-#### Task Description
-Create backend services for KPI metrics and filter options.
-
-#### Sub-Tasks
-- Create a backend route and controller to fetch aggregated counts for:
-  - Healthy
-  - Deficit
-  - Excess
-- Write database queries to:
-  - Calculate KPI totals dynamically
-  - Retrieve available dropdown filter options
-
-#### Deliverables
-- Backend route and controller for KPI metrics.
-- Database query for KPI totals and filter options.
-
-#### Acceptance Criteria
-- The API returns a successful status code and aggregated KPI counts.
-- Database queries accurately calculate KPI totals.
-- Dropdown filter options are returned correctly.
-
----
-
-## Week 4
-
-### Day 1: Develop API Endpoint for Nutritional Trends Data Aggregation
-
-#### Task Description
-Create backend services to provide historical nutritional trend data.
-
-#### Sub-Tasks
-- Create a backend route and controller to fetch historical nutritional records.
-- Write database queries to:
-  - Aggregate health statuses
-  - Group records by month
-
-#### Deliverables
-- Backend route and controller for historical nutritional records.
-- Database query for monthly aggregation.
-
-#### Acceptance Criteria
-- The API returns a successful status code and historical records.
-- Health status data is correctly grouped by month.
+#### Day 2: API Controllers & Data Persistence
+* **Sub-Tasks:**
+  * Implement Child Registration API Endpoint.
+  * Connect Masterlist to Data Fetch API.
+* **Deliverables:**
+  * Successful database write operations confirmed when submitting a new child profile.
+  * The Masterlist table dynamically rendering the actual records retrieved from your backend API.
+* **PR Acceptance Criteria:**
+  * The Express route controller receives the form payload, validates data against the schema, and successfully persists the document in the database.
+  * The frontend table successfully fetches and iterates over dynamic JSON data arrays retrieved from the backend API.
 
 ---
 
-### Day 2: Develop API Endpoint for Barangay Health Comparison Data
+### ⏳ Week 4: Search, Filters & Data Flow
+#### Day 1: Querying & Filtering Logic
+* **Sub-Tasks:**
+  * Build Search Query Logic.
+  * Implement Dropdown Filter API Logic.
+* **Deliverables:**
+  * A functional search bar that accurately narrows down the displayed Masterlist data in real-time.
+  * Dropdown filters that successfully query the database and return strictly matching datasets to the UI.
+* **PR Acceptance Criteria:**
+  * Backend database queries accurately filter and return records matching the child name search parameter.
+  * Database controllers successfully apply filtering logic for Purok and Checkup Status, returning the strictly matching datasets to the UI.
 
-#### Task Description
-Provide barangay-based health comparison data for dashboard visualizations.
-
-#### Sub-Tasks
-- Create a backend route and controller to fetch health records grouped by barangay.
-- Write database queries to:
-  - Retrieve nutritional case records
-  - Calculate total cases per barangay
-
-#### Deliverables
-- Backend route and controller for barangay comparison data.
-- Database query for barangay case aggregation.
-
-#### Acceptance Criteria
-- The API returns a successful status code and barangay-grouped records.
-- Total nutritional cases per barangay are calculated accurately.
-- Hovering over the graph displays the correct total case count.
-
----
-
-## Week 5
-
-### Day 1: Develop API Endpoint for Barangay Map Coordinate and Status Data
-
-#### Task Description
-Provide map coordinates and nutritional risk data for each barangay.
-
-#### Sub-Tasks
-- Create a backend route and controller to fetch:
-  - Barangay geographical coordinates
-  - Aggregated nutritional status
-- Write database queries to:
-  - Calculate overall nutritional risk levels
-  - Determine marker colors
-
-#### Deliverables
-- Backend route and controller for map data.
-- Database query for nutritional risk calculations.
-
-#### Acceptance Criteria
-- The API returns a successful status code with barangay coordinates and status data.
-- Nutritional risk levels are calculated accurately.
-- Marker colors correspond to the correct risk levels.
+#### Day 2: Assessment Data Flow & History
+* **Sub-Tasks:**
+  * Create Monthly Assessment Update Controller.
+  * Implement Checkup History Fetch Logic.
+* **Deliverables:**
+  * Successful backend updates of height, weight, and nutritional status for individual records.
+  * The history tab dynamically populating with the correct historical data rows pulled from the database.
+* **PR Acceptance Criteria:**
+  * The controller successfully processes assessment form submissions and updates the specific child's document with new height, weight, and nutritional status.
+  * The "Checkup History" tab successfully queries and displays an array of past assessment sub-documents strictly tied to the selected child.
 
 ---
 
-### Day 2: Develop API Endpoint for Health Insights
+### ⏳ Week 5: Aggregation & E2E Testing
+#### Day 1: Data Aggregation & Report Generation
+* **Sub-Tasks:**
+  * Build Database Aggregation Pipelines.
+  * Connect Monthly Report Table Endpoint.
+* **Deliverables:**
+  * The dashboard summary cards actively displaying accurate, dynamically calculated totals.
+  * The Monthly Report table accurately listing all assessed children and their derived statuses directly from your backend logic.
+* **PR Acceptance Criteria:**
+  * Database aggregation pipelines accurately calculate Total Registered, Normal, Stunted, and Obese counts for the requested month.
+  * The detailed Monthly Report table correctly fetches and displays the fully aggregated dataset for the selected month via API request.
 
-#### Task Description
-Provide detailed health statistics for a selected barangay.
-
-#### Sub-Tasks
-- Create a backend route and controller that accepts a barangay identifier.
-- Retrieve detailed health statistics from the database.
-
-#### Deliverables
-- Backend route and controller for barangay health insights.
-
-#### Acceptance Criteria
-- The API returns a successful status code and nutritional status data for the selected barangay.
-- If no records exist, the API returns an empty dataset without errors.
+#### Day 2: Masterlist E2E Testing
+* **Sub-Tasks:**
+  * Automate Registration Flow E2E Test.
+  * Automate Assessment Flow E2E Test.
+* **Deliverables:**
+  * A passing test confirmation for the child profile creation journey.
+  * A passing test confirmation for the monthly assessment submission journey.
+* **PR Acceptance Criteria:**
+  * The test suite successfully executes clicking "Add New Child", filling the form, submitting, and verifying the persisted record appears on the Masterlist.
+  * The test suite verified the flow of searching a child, opening the manage modal, and successfully submitting a new weight/height entry.
 
 ---
 
-## Week 6
-
-### Day 1: Develop API Endpoint for Intervention Planning
-
-#### Task Description
-Generate automated intervention recommendations based on health statistics.
-
-#### Sub-Tasks
-- Implement server-side logic to:
-  - Analyze health statistics
-  - Generate intervention recommendations
-
-#### Deliverables
-- Server-side recommendation engine.
-
-#### Acceptance Criteria
-- The system accurately analyzes health statistics.
-- Appropriate intervention recommendations are generated.
-- Results are returned in a valid JSON structure.
-```
+### ⏳ Week 6: Edge Cases & Validation
+#### Day 1: Data Cascading & Edge Cases
+* **Sub-Tasks:**
+  * Test Monthly Report Data Aggregation Cascading.
+  * Validate Edge Cases and Error Handling.
+* **Deliverables:**
+  * Verified testing proof that data flows correctly from an individual update to the aggregated monthly report.
+  * Confirmed stability with robust error handling and validation messaging working properly across the application.
+* **PR Acceptance Criteria:**
+  * Automated tests confirmed that a newly submitted assessment in the Masterlist correctly cascaded to update both the summary cards and table in the Monthly Report view.
+  * The test suite passed validations for boundary constraints, including submitting empty forms, searching for missing records, or filtering with zero results.
