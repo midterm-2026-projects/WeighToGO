@@ -26,7 +26,7 @@ export function Login(role, email, password) {
   return "Incorrect email or password";
 }
 
-export default function LoginPage() {
+export default function LoginPage({ handleLogin }) {
   const [role, setRole] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -34,6 +34,10 @@ export default function LoginPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    if (handleLogin) {
+      handleLogin(email, password);
+    }
 
     try {
       const result = Login(role, email, password);

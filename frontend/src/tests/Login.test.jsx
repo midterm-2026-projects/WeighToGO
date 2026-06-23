@@ -1,32 +1,44 @@
 import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import LoginPage from "../components/W1D1/Login";
 
-describe("Login", () => {
+describe("Login Component", () => {
   const adminRole = "Administrator (Admin)";
   const bnsRole = "Barangay Nutrition Scholar";
   const validAdminEmail = "user@health.gov.ph";
   const validAdminPassword = "Balayan2026!";
 
-  it("renders login form correctly", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("renders login form correctly, including inputs and buttons", () => {
     render(<LoginPage />);
+
     expect(screen.getByLabelText("Role")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Enter your email")).toBeInTheDocument();
     expect(screen.getByPlaceholderText("Enter your password")).toBeInTheDocument();
+    
     expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
   });
 
-  it("updates input values correctly", () => {
-    render(<LoginPage />);
-    const emailInput = screen.getByPlaceholderText("Enter your email");
-    const passwordInput = screen.getByPlaceholderText("Enter your password");
+  it("updates input values correctly and calls mocked vi function", async () => {
+  const mockHandleLogin = vi.fn();
+  const user = userEvent.setup();
 
-    fireEvent.change(emailInput, { target: { value: validAdminEmail } });
-    fireEvent.change(passwordInput, { target: { value: validAdminPassword } });
+  render(<LoginPage handleLogin={mockHandleLogin} />);
+  
+  const emailInput = screen.getByPlaceholderText("Enter your email");
+  const passwordInput = screen.getByPlaceholderText("Enter your password");
 
-    expect(emailInput.value).toBe(validAdminEmail);
-    expect(passwordInput.value).toBe(validAdminPassword);
-  });
+  await user.type(emailInput, validAdminEmail);
+  await user.type(passwordInput, validAdminPassword);
+
+  await user.click(screen.getByRole("button", { name: /login/i }));
+
+  expect(mockHandleLogin).toHaveBeenCalledWith(validAdminEmail, validAdminPassword);
+});
 
   it("changes role selection", () => {
     render(<LoginPage />);
@@ -39,13 +51,11 @@ describe("Login", () => {
     expect(roleSelect.value).toBe(bnsRole);
   });
 
-  it("shows error when fields are empty", () => {
+  it("shows error when fields are empty and login button is clicked", () => {
     render(<LoginPage />);
     
-    // Attempt login without selecting or typing anything
     fireEvent.click(screen.getByRole("button", { name: /login/i }));
 
-    // First assertion caught on empty dropdown role
     expect(screen.getByText("Invalid dropdown selection")).toBeInTheDocument();
   });
 
