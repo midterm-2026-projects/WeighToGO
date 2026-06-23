@@ -1,7 +1,7 @@
 # Objective 2: Web-Based Admin Dashboard for the Municipal Health Office
 
 ## Project Overview
-This objective establishes the centralized monitoring system for tracking child growth metrics and medical supplement interventions at the barangay level. It encompasses building the secure administrator authentication portal, multi-tier dynamic tracking grids for the Barangay Masterlist, child individual profile overlays, and localized matrix distribution logs for Operation Timbang (OPT). This forms the core operational framework of the portal to ensure accurate monitoring and clear report dissemination.
+This objective establishes the centralized monitoring system for tracking child growth metrics and medical supplement interventions at the barangay level. It encompasses building the secure administrator authentication portal, multi-tier dynamic tracking grids for the Barangay Masterlist, child individual profile overlays, and localized matrix distribution logs for Operation Timbang (OPT). This forms the core operational framework of the portal to ensure accurate monitoring and clear report dissemination
 
 ---
 
@@ -9,7 +9,7 @@ This objective establishes the centralized monitoring system for tracking child 
 * **Objective Number:** 2
 * **Project Title:** Web-Based Admin Dashboard for the Municipal Health Office
 * **Owners / Developers:**
-    * Raniel Carl M. Lopez
+    * Raniel Carl Mercado Lopez
 
 ---
 
