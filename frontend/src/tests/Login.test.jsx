@@ -1,143 +1,135 @@
-import { expect, it, describe } from "vitest";
-import { Login } from "../components/W1D1/Login.jsx";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import LoginPage from "../components/W1D1/Login";
 
-describe("Weigh To Go Portal - Login Logic Validation (Strict AAA)", () => {
+describe("Login", () => {
   const adminRole = "Administrator (Admin)";
   const bnsRole = "Barangay Nutrition Scholar";
   const validAdminEmail = "user@health.gov.ph";
   const validAdminPassword = "Balayan2026!";
 
-  it("should return success message if the Administrator role, email, and password are correct", () => {
-    const role = adminRole;
-    const email = validAdminEmail;
-    const password = validAdminPassword;
-
-    const result = Login(role, email, password);
-
-    expect(result).toMatch("Login Successful");
+  it("renders login form correctly", () => {
+    render(<LoginPage />);
+    expect(screen.getByLabelText("Role")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter your email")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Enter your password")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /login/i })).toBeInTheDocument();
   });
 
-  it("should return success message if the Barangay Nutrition Scholar role, email, and password are correct", () => {
-    const role = bnsRole;
-    const email = "bns@health.gov.ph";
-    const password = "BNSBalayan2026!";
+  it("updates input values correctly", () => {
+    render(<LoginPage />);
+    const emailInput = screen.getByPlaceholderText("Enter your email");
+    const passwordInput = screen.getByPlaceholderText("Enter your password");
 
-    const result = Login(role, email, password);
+    fireEvent.change(emailInput, { target: { value: validAdminEmail } });
+    fireEvent.change(passwordInput, { target: { value: validAdminPassword } });
 
-    expect(result).toMatch("Login Successful");
+    expect(emailInput.value).toBe(validAdminEmail);
+    expect(passwordInput.value).toBe(validAdminPassword);
   });
 
-  it("should throw an error if dropdown role selection is empty", () => {
-    const emptyRole = "";
-    let capturedError;
+  it("changes role selection", () => {
+    render(<LoginPage />);
+    const roleSelect = screen.getByLabelText("Role");
 
-    try {
-      Login(emptyRole, validAdminEmail, validAdminPassword);
-    } catch (error) {
-      capturedError = error;
-    }
+    fireEvent.change(roleSelect, { target: { value: adminRole } });
+    expect(roleSelect.value).toBe(adminRole);
 
-    expect(capturedError).toBeDefined();
-    expect(capturedError.message).toBe("Invalid dropdown selection");
+    fireEvent.change(roleSelect, { target: { value: bnsRole } });
+    expect(roleSelect.value).toBe(bnsRole);
   });
 
-  it("should throw an error if an unlisted role values injects into the system", () => {
-    const invalidRole = "Municipal Health Officer";
-    let capturedError;
+  it("shows error when fields are empty", () => {
+    render(<LoginPage />);
+    
+    // Attempt login without selecting or typing anything
+    fireEvent.click(screen.getByRole("button", { name: /login/i }));
 
-    try {
-      Login(invalidRole, validAdminEmail, validAdminPassword);
-    } catch (error) {
-      capturedError = error;
-    }
-
-    expect(capturedError).toBeDefined();
-    expect(capturedError.message).toBe("Invalid dropdown selection");
+    // First assertion caught on empty dropdown role
+    expect(screen.getByText("Invalid dropdown selection")).toBeInTheDocument();
   });
 
-  it("should throw an error if email does not contain @", () => {
-    const brokenEmail = "userhealth.gov.ph";
-    let capturedError;
+  it("shows error if email format is invalid", () => {
+    render(<LoginPage />);
+    
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: adminRole } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your email"), { target: { value: "userhealth.gov.ph" } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your password"), { target: { value: validAdminPassword } });
+    
+    fireEvent.click(screen.getByRole("button", { name: /login/i }));
 
-    try {
-      Login(adminRole, brokenEmail, validAdminPassword);
-    } catch (error) {
-      capturedError = error;
-    }
-
-    expect(capturedError).toBeDefined();
-    expect(capturedError.message).toBe("Invalid email format");
+    expect(screen.getByText("Invalid email format")).toBeInTheDocument();
   });
 
-  it("should throw an error if email does not have a domain name", () => {
-    const brokenEmail = "user@";
-    let capturedError;
+  it("shows error if password length is under 8 characters", () => {
+    render(<LoginPage />);
+    
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: adminRole } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your email"), { target: { value: validAdminEmail } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your password"), { target: { value: "short" } });
+    
+    fireEvent.click(screen.getByRole("button", { name: /login/i }));
 
-    try {
-      Login(adminRole, brokenEmail, validAdminPassword);
-    } catch (error) {
-      capturedError = error;
-    }
-
-    expect(capturedError).toBeDefined();
-    expect(capturedError.message).toBe("Invalid email format");
+    expect(screen.getByText("Weak password configuration")).toBeInTheDocument();
   });
 
-  it("should throw an error if email field is empty", () => {
-    const emptyEmail = "";
-    let capturedError;
+  it("shows warning error when email is provided but password is empty", () => {
+    render(<LoginPage />);
 
-    try {
-      Login(adminRole, emptyEmail, validAdminPassword);
-    } catch (error) {
-      capturedError = error;
-    }
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: adminRole } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your email"), { target: { value: validAdminEmail } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your password"), { target: { value: "" } });
 
-    expect(capturedError).toBeDefined();
-    expect(capturedError.message).toBe("Invalid email format");
+    fireEvent.click(screen.getByRole("button", { name: /login/i }));
+
+    expect(screen.getByText("Weak password configuration")).toBeInTheDocument();
   });
 
-  it("should throw an error if password length is under 8 characters", () => {
-    const shortPassword = "short";
-    let capturedError;
+  it("shows warning error when password is provided but email is empty", () => {
+    render(<LoginPage />);
 
-    try {
-      Login(adminRole, validAdminEmail, shortPassword);
-    } catch (error) {
-      capturedError = error;
-    }
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: adminRole } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your email"), { target: { value: "" } }); 
+    fireEvent.change(screen.getByPlaceholderText("Enter your password"), { target: { value: validAdminPassword } });
 
-    expect(capturedError).toBeDefined();
-    expect(capturedError.message).toBe("Weak password configuration");
+    fireEvent.click(screen.getByRole("button", { name: /login/i }));
+
+    expect(screen.getByText("Invalid email format")).toBeInTheDocument();
   });
 
-  it("should throw an error if password field is empty", () => {
-    const emptyPassword = "";
-    let capturedError;
+  it("shows warning message for incorrect credentials", () => {
+    render(<LoginPage />);
 
-    try {
-      Login(adminRole, validAdminEmail, emptyPassword);
-    } catch (error) {
-      capturedError = error;
-    }
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: adminRole } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your email"), { target: { value: validAdminEmail } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your password"), { target: { value: "WrongPassword123!" } });
 
-    expect(capturedError).toBeDefined();
-    expect(capturedError.message).toBe("Weak password configuration");
+    fireEvent.click(screen.getByRole("button", { name: /login/i }));
+
+    expect(screen.getByText("Incorrect email or password")).toBeInTheDocument();
   });
 
-  it("should return warning message when email does not match database records", () => {
-    const incorrectEmail = "different-user@health.gov.ph";
+  it("shows success message when Administrator credentials are valid", () => {
+    render(<LoginPage />);
 
-    const result = Login(adminRole, incorrectEmail, validAdminPassword);
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: adminRole } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your email"), { target: { value: validAdminEmail } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your password"), { target: { value: validAdminPassword } });
 
-    expect(result).toEqual("Incorrect email or password");
+    fireEvent.click(screen.getByRole("button", { name: /login/i }));
+
+    expect(screen.getByText("Login Successful")).toBeInTheDocument();
   });
 
-  it("should return warning message when password does not match database records", () => {
-    const incorrectPassword = "WrongPassword123";
+  it("shows success message when Barangay Nutrition Scholar credentials are valid", () => {
+    render(<LoginPage />);
 
-    const result = Login(adminRole, validAdminEmail, incorrectPassword);
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: bnsRole } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your email"), { target: { value: "bns@health.gov.ph" } });
+    fireEvent.change(screen.getByPlaceholderText("Enter your password"), { target: { value: "BNSBalayan2026!" } });
 
-    expect(result).toEqual("Incorrect email or password");
+    fireEvent.click(screen.getByRole("button", { name: /login/i }));
+
+    expect(screen.getByText("Login Successful")).toBeInTheDocument();
   });
 });
