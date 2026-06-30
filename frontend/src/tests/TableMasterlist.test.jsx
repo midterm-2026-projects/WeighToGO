@@ -7,18 +7,18 @@ const RUNTIME_RECORDS = [
 ];
 
 describe("TableMasterlist Presentation Tests", () => {
-  it("renders mock data elements into row elements safely", () => {
+  it("should renders mock data elements into row elements safely", () => {
     render(<TableMasterlist records={RUNTIME_RECORDS} />);
     expect(screen.getByText("RAMOS, DIEGO")).toBeInTheDocument();
     expect(screen.getByText("MERCADO, MATEO")).toBeInTheDocument();
   });
 
-  it("handles displaying empty arrays with explicit zero-state feedback strings", () => {
+  it("should handles displaying empty arrays with explicit zero-state feedback strings", () => {
     render(<TableMasterlist records={[]} />);
     expect(screen.getByText("No matching child profile records discovered.")).toBeInTheDocument();
   });
 
-  it("toggles the detail dashboard modal visibility tracking user action selection clicks", () => {
+  it("should toggle the detail dashboard modal visibility when user clicks the profile button", () => {
     render(<TableMasterlist records={RUNTIME_RECORDS} />);
     
     fireEvent.click(screen.getByRole("button", { name: "Profile" }));
