@@ -1,4 +1,8 @@
 ```markdown
+
+# Owner : Ron Andrew I. Arizala
+# Objective 3: Business Analytics and Integrate Feature 
+
 # Health Trends Dashboard Development Plan
 
 ## Week 1
@@ -23,8 +27,13 @@ Develop KPI card components and dropdown filter controls for the Health Trends D
 - Dropdown filter controls for Barangay, Age, and Nutritional Indicator.
 
 #### Acceptance Criteria
-- The dashboard displays KPI cards for Healthy, Deficit, and Excess statuses.
-- The dashboard provides dropdown filter controls for Barangay, Age, and Nutritional Indicator.
+- should have dropdown filter controls for Barangay, Age, and Nutritional Indicator
+- should calls onChange handler when a new option is selected
+- should render correctly when BOTH title and value are provided
+- should display a fallback of "0" when ONLY the title is provided
+- should display a warning text and color when ONLY the value is provided
+- should display fallbacks for both when NEITHER title nor value is provided
+
 
 ---
 
@@ -44,13 +53,18 @@ Create visualizations to monitor nutritional trends and compare health issues ac
 
 #### Deliverables
 - Line chart visualizing monthly nutritional cases.
-- Bar graph comparing health issues across barangays.
+- Bar graph comparing health issues across barangays .
 
 #### Acceptance Criteria
-- The line chart includes filter options for specific nutritional cases.
-- The line chart displays the number of nutritional cases on hover.
-- The bar graph accurately compares health issues across barangays.
-
+- should have tooltip configurations to display barangay name and total issues on hover
+- should display a level of 0 in the bar graph when there are no health issues
+- should filter specific cases in the bar graph when selected
+- should only output the selected filters in the bar graph
+- should filter health cases in the line chart depending on the selected filter
+- should function correctly based on the actual number of cases
+- should display no lines in the chart when no filters are selected
+- should only display the exact filters selected in the line chart
+- should display the line at level 0 when there are no cases
 ---
 
 ### Day 2: Integrate Interactive Barangay Map
