@@ -94,7 +94,7 @@ export default function BarGraph() {
           </label>
         </div>
       </div>
-      <div className="h-[400px] w-full mt-6">
+      <div className="h-100 w-full mt-6">
         <Bar data={barChartData} options={commonOptions} />
       </div>
     </div>
