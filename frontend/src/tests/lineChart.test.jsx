@@ -1,9 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import LineChart from '../components/dashboard/lineChart';
 
+// Mocking react-chartjs-2 to easily read the props passed to it
 vi.mock('react-chartjs-2', () => ({
   Line: (props) => (
     <div 
@@ -26,11 +27,14 @@ describe('Line Chart - Monthly Nutritional Cases', () => {
     const obesityCheckbox = screen.getByLabelText('Obesity');
     await user.click(obesityCheckbox);
     
-    const lineChart = screen.getByTestId('mock-line-chart');
-    const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
-    
-    const activeLabels = datasets.map(d => d.label);
-    expect(activeLabels).toContain('Obesity');
+    // Use waitFor to allow React state to update after the click
+    await waitFor(() => {
+      const lineChart = screen.getByTestId('mock-line-chart');
+      const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
+      const activeLabels = datasets.map(d => d.label);
+      
+      expect(activeLabels).toContain('Obesity');
+    });
   });
 
   it('should function correctly based on the actual number of cases', () => {
@@ -54,10 +58,11 @@ describe('Line Chart - Monthly Nutritional Cases', () => {
       await user.click(malnutritionCheckbox);
     }
     
-    const lineChart = screen.getByTestId('mock-line-chart');
-    const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
-    
-    expect(datasets).toHaveLength(0);
+    await waitFor(() => {
+      const lineChart = screen.getByTestId('mock-line-chart');
+      const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
+      expect(datasets).toHaveLength(0);
+    });
   });
 
   it('should only display the exact filters selected in the line chart', async () => {
@@ -67,14 +72,17 @@ describe('Line Chart - Monthly Nutritional Cases', () => {
     const malnutritionCheckbox = screen.getByLabelText('Malnutrition');
     const obesityCheckbox = screen.getByLabelText('Obesity');
     
+    // Ensure exact state: Malnutrition ON, Obesity OFF
     if (!malnutritionCheckbox.checked) await user.click(malnutritionCheckbox);
     if (obesityCheckbox.checked) await user.click(obesityCheckbox);
     
-    const lineChart = screen.getByTestId('mock-line-chart');
-    const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
-    
-    expect(datasets).toHaveLength(1);
-    expect(datasets[0].label).toBe('Malnutrition');
+    await waitFor(() => {
+      const lineChart = screen.getByTestId('mock-line-chart');
+      const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
+      
+      expect(datasets).toHaveLength(1);
+      expect(datasets[0].label).toBe('Malnutrition');
+    });
   });
 
   it('should display the line at level 0 when there are no cases', () => {

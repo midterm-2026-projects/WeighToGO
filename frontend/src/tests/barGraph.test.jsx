@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
@@ -44,11 +44,13 @@ describe('Bar Graph - Health Issues Across Barangays', () => {
     const measlesCheckbox = screen.getByLabelText('Measles');
     await user.click(measlesCheckbox);
     
-    const barGraph = screen.getByTestId('mock-bar-graph');
-    const datasets = JSON.parse(barGraph.getAttribute('data-datasets'));
-    
-    const activeLabels = datasets.map(d => d.label);
-    expect(activeLabels).toContain('Measles');
+    await waitFor(() => {
+      const barGraph = screen.getByTestId('mock-bar-graph');
+      const datasets = JSON.parse(barGraph.getAttribute('data-datasets'));
+      const activeLabels = datasets.map(d => d.label);
+      
+      expect(activeLabels).toContain('Measles');
+    });
   });
 
   it('should only output the selected filters in the bar graph', async () => {
@@ -58,13 +60,16 @@ describe('Bar Graph - Health Issues Across Barangays', () => {
     const dengueCheckbox = screen.getByLabelText('Dengue');
     const measlesCheckbox = screen.getByLabelText('Measles');
     
+    // Ensure exact state: Dengue OFF, Measles ON
     if (dengueCheckbox.checked) await user.click(dengueCheckbox);
     if (!measlesCheckbox.checked) await user.click(measlesCheckbox);
     
-    const barGraph = screen.getByTestId('mock-bar-graph');
-    const datasets = JSON.parse(barGraph.getAttribute('data-datasets'));
-    
-    expect(datasets).toHaveLength(1);
-    expect(datasets[0].label).toBe('Measles');
+    await waitFor(() => {
+      const barGraph = screen.getByTestId('mock-bar-graph');
+      const datasets = JSON.parse(barGraph.getAttribute('data-datasets'));
+      
+      expect(datasets).toHaveLength(1);
+      expect(datasets[0].label).toBe('Measles');
+    });
   });
 });
