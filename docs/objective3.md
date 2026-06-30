@@ -53,7 +53,7 @@ Create visualizations to monitor nutritional trends and compare health issues ac
 
 #### Deliverables
 - Line chart visualizing monthly nutritional cases.
-- Bar graph comparing health issues across barangays.
+- Bar graph comparing health issues across barangays .
 
 #### Acceptance Criteria
 - should have tooltip configurations to display barangay name and total issues on hover
