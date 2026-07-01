@@ -73,14 +73,14 @@ Create visualizations to monitor nutritional trends and compare health issues ac
 Develop an interactive map for visualizing barangay nutritional risk levels.
 
 #### Sub-Tasks
-- Embed a Leaflet map viewport centered on the target municipality.
+-  map viewport centered on the target municipality.
 - Implement dynamic color-coded map markers based on nutritional risk levels:
   - Red (High Risk)
   - Yellow (Moderate Risk)
   - Green (Low Risk)
 
 #### Deliverables
-- Leaflet map viewport centered on the target municipality.
+- map viewport centered on the target municipality.
 - Dynamic color-coded map markers.
 
 #### Acceptance Criteria
