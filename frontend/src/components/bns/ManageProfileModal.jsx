@@ -9,7 +9,7 @@ export const ManageProfileModal = ({ isOpen, onClose, childRecord }) => {
     <div className="modal-backdrop">
       <div className="modal-container">
         <div className="modal-header">
-          <button type="button" className="close-x-btn" onClick={onClose}>&times;</button>
+          <button type="button" aria-label="Close" className="close-x-btn" onClick={onClose}>&times;</button>
           <h1>{childRecord.name}</h1>
           <p>{childRecord.purok} | Age: {childRecord.age} mos | {childRecord.gender}</p>
         </div>

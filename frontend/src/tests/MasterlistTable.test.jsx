@@ -1,11 +1,31 @@
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest'; 
 import '@testing-library/jest-dom';
-import { RMasterlistTable } from '../components/bns/MasterlistTable.jsx';
+import { MasterlistTable } from '../components/bns/MasterlistTable.jsx';
 
-describe('RMasterlistTable Component', () => {
+describe('MasterlistTable Component', () => { 
   it('should display the masterlist table columns correctly with mock data.', () => {
-    render(<RMasterlistTable />);
+
+    const mockRecords = [
+      {
+        id: 1, 
+        name: 'GOMEZ, JAMES ANDREI',
+        parent: 'BAUTISTA, ANGELIQUE',
+        gender: 'Male',
+        age: 6,
+        purok: 'Purok 1',
+        status: 'Pending'
+      }
+    ];
+
+    const mockOnManageChild = vi.fn();
+
+    render(
+      <MasterlistTable 
+        records={mockRecords} 
+        onManageChild={mockOnManageChild} 
+      />
+    );
 
     expect(screen.getByRole('columnheader', { name: /name of child/i })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /parent \/ guardian/i })).toBeInTheDocument();
