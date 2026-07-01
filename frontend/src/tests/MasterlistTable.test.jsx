@@ -4,7 +4,7 @@ import '@testing-library/jest-dom';
 import { RMasterlistTable } from '../components/bns/MasterlistTable.jsx';
 
 describe('RMasterlistTable Component', () => {
-  it('should display the masterlist table columns correctly with mock data', () => {
+  it('should display the masterlist table columns correctly with mock data.', () => {
     render(<RMasterlistTable />);
 
     expect(screen.getByRole('columnheader', { name: /name of child/i })).toBeInTheDocument();
