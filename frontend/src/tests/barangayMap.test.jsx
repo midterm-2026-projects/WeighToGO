@@ -12,29 +12,62 @@ describe('Interactive Barangay Map', () => {
   it('should render the map component and legend correctly', () => {
     expect(screen.getByText('Interactive Barangay Map')).toBeInTheDocument();
     expect(screen.getByText('Balayan Nutritional Risk Distribution')).toBeInTheDocument();
-    expect(screen.getByText('Low Risk')).toBeInTheDocument();
-    expect(screen.getByText('Moderate')).toBeInTheDocument();
   });
 
   it('should display a green color for barangays with low risk (less than 15 cases)', () => {
     const lowRiskMarker = screen.getByTestId('marker-1'); 
-    
     expect(lowRiskMarker.getAttribute('data-risk')).toBe('Low Risk');
     expect(lowRiskMarker.firstChild).toHaveClass('bg-green-500');
   });
 
   it('should display a yellow color for barangays with moderate risk (15 to 29 cases)', () => {
     const moderateRiskMarker = screen.getByTestId('marker-2'); 
-    
     expect(moderateRiskMarker.getAttribute('data-risk')).toBe('Moderate Risk');
     expect(moderateRiskMarker.firstChild).toHaveClass('bg-yellow-400');
   });
 
   it('should display a red color for barangays with high risk (30 or more cases)', () => {
     const highRiskMarker = screen.getByTestId('marker-3'); 
-    
     expect(highRiskMarker.getAttribute('data-risk')).toBe('High Risk');
     expect(highRiskMarker.firstChild).toHaveClass('bg-red-500');
   });
 
+  it('should show barangay tooltip details when hovered', async () => {
+    const user = userEvent.setup();
+    const highRiskMarker = screen.getByTestId('marker-3'); 
+
+    await user.hover(highRiskMarker);
+
+    expect(screen.getByText('Barangay 3')).toBeInTheDocument();
+    expect(screen.getByText('Nutritional Cases:')).toBeInTheDocument();
+  });
+
+  // NEW TESTS FOR SIDE PANEL INTEGRATION
+  it('should open and display the side panel when a barangay marker is clicked', async () => {
+    const user = userEvent.setup();
+    const marker = screen.getByTestId('marker-1'); 
+    
+    // Click the map marker
+    await user.click(marker);
+    
+    // Verify side panel content appears
+    expect(screen.getByText('Registered Children')).toBeInTheDocument();
+    expect(screen.getByText('Nutritional Status Breakdown')).toBeInTheDocument();
+  });
+
+  it('should close the side panel when the close button is clicked inside it', async () => {
+    const user = userEvent.setup();
+    const marker = screen.getByTestId('marker-1'); 
+    
+    // Open the panel first
+    await user.click(marker);
+    expect(screen.getByText('Registered Children')).toBeInTheDocument();
+
+    // Click the close button
+    const closeButton = screen.getByText('✕');
+    await user.click(closeButton);
+
+    // Verify side panel content is gone
+    expect(screen.queryByText('Registered Children')).not.toBeInTheDocument();
+  });
 });

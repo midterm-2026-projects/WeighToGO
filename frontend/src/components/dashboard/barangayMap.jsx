@@ -1,15 +1,37 @@
 import React, { useState } from 'react';
+import MapSidePanel from './mapSidePanel';
 
 const MAP_DATA = [
-  { id: 1, name: 'Barangay 1', cases: 5, coordinates: { top: '20%', left: '30%' } },
-  { id: 2, name: 'Barangay 2', cases: 25, coordinates: { top: '40%', left: '50%' } },
-  { id: 3, name: 'Barangay 3', cases: 45, coordinates: { top: '60%', left: '70%' } },
-  { id: 4, name: 'Barangay 4', cases: 8, coordinates: { top: '70%', left: '30%' } },
-  { id: 5, name: 'Barangay 5', cases: 18, coordinates: { top: '30%', left: '80%' } },
+  { 
+    id: 1, name: 'Barangay 1', cases: 5, registeredChildren: 150, 
+    status: { normal: 145, deficit: 3, excess: 2 }, 
+    coordinates: { top: '20%', left: '30%' } 
+  },
+  { 
+    id: 2, name: 'Barangay 2', cases: 25, registeredChildren: 200, 
+    status: { normal: 175, deficit: 15, excess: 10 }, 
+    coordinates: { top: '40%', left: '50%' } 
+  },
+  { 
+    id: 3, name: 'Barangay 3', cases: 45, registeredChildren: 180, 
+    status: { normal: 135, deficit: 30, excess: 15 }, 
+    coordinates: { top: '60%', left: '70%' } 
+  },
+  { 
+    id: 4, name: 'Barangay 4', cases: 8, registeredChildren: 120, 
+    status: { normal: 112, deficit: 5, excess: 3 }, 
+    coordinates: { top: '70%', left: '30%' } 
+  },
+  { 
+    id: 5, name: 'Barangay 5', cases: 18, registeredChildren: 160, 
+    status: { normal: 142, deficit: 10, excess: 8 }, 
+    coordinates: { top: '30%', left: '80%' } 
+  },
 ];
 
 export default function BarangayMap() {
-  const [activeBarangay, setActiveBarangay] = useState(null);
+  const [hoveredBarangay, setHoveredBarangay] = useState(null);
+  const [selectedBarangay, setSelectedBarangay] = useState(null);
 
   const getRiskDetails = (cases) => {
     if (cases >= 30) {
@@ -21,8 +43,12 @@ export default function BarangayMap() {
     return { level: 'Low Risk', color: 'bg-green-500', ring: 'ring-green-500/30' };
   };
 
+  const handleMarkerClick = (barangay) => {
+    setSelectedBarangay(barangay);
+  };
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center">
         <div>
           <h2 className="text-lg font-semibold text-gray-800">Interactive Barangay Map</h2>
@@ -45,23 +71,25 @@ export default function BarangayMap() {
         </div>
       </div>
 
-      <div className="relative w-full h-100 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden">
+      <div className="relative w-full h-112.5 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden flex">
         
         <div className="absolute inset-0 opacity-10" style={{ 
           backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', 
           backgroundSize: '20px 20px' 
         }}></div>
 
+        {/* Map Markers */}
         {MAP_DATA.map((barangay) => {
           const risk = getRiskDetails(barangay.cases);
           
           return (
             <div
               key={barangay.id}
-              className="absolute group"
+              className="absolute group z-10"
               style={{ top: barangay.coordinates.top, left: barangay.coordinates.left }}
-              onMouseEnter={() => setActiveBarangay(barangay)}
-              onMouseLeave={() => setActiveBarangay(null)}
+              onMouseEnter={() => setHoveredBarangay(barangay)}
+              onMouseLeave={() => setHoveredBarangay(null)}
+              onClick={() => handleMarkerClick(barangay)}
               data-testid={`marker-${barangay.id}`}
               data-risk={risk.level}
             >
@@ -69,8 +97,9 @@ export default function BarangayMap() {
                 <div className="absolute w-2 h-2 bg-white rounded-full"></div>
               </div>
 
-              {activeBarangay?.id === barangay.id && (
-                <div className="absolute z-10 w-48 p-3 mt-2 -ml-20 bg-white border border-gray-100 rounded-lg shadow-xl pointer-events-none">
+              {/* Tooltip on Hover */}
+              {hoveredBarangay?.id === barangay.id && !selectedBarangay && (
+                <div className="absolute z-20 w-48 p-3 mt-2 -ml-20 bg-white border border-gray-100 rounded-lg shadow-xl pointer-events-none">
                   <h3 className="font-semibold text-gray-800 text-sm">{barangay.name}</h3>
                   <div className="flex justify-between items-center mt-2">
                     <span className="text-xs text-gray-500">Nutritional Cases:</span>
@@ -80,11 +109,22 @@ export default function BarangayMap() {
                     <span className={`w-2 h-2 rounded-full ${risk.color}`}></span>
                     <span className="text-xs font-medium text-gray-700">{risk.level}</span>
                   </div>
+                  <div className="mt-2 text-[10px] text-gray-400 italic text-center border-t pt-1">
+                    Click to view details
+                  </div>
                 </div>
               )}
             </div>
           );
         })}
+
+        {/* Slide-in Side Panel */}
+        <MapSidePanel 
+          barangay={selectedBarangay} 
+          onClose={() => setSelectedBarangay(null)} 
+          getRiskDetails={getRiskDetails} 
+        />
+
       </div>
     </div>
   );
