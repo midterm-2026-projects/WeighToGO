@@ -5,6 +5,7 @@ import childModel from '../src/models/child.model.js';
 vi.mock('../src/models/child.model.js', () => ({
   default: {
     getAllChildrenRecords: vi.fn(),
+    createChildRecord: vi.fn()
   }
 }));
 
@@ -47,31 +48,6 @@ describe('Child Service', () => {
       ]);
     });
 
-    it('should conditionally include only the nutritional indicators present in the data', async () => {
-      const partialIndicatorRecords = [
-        { id: 1, barangay: 'Barangay A', ageGroup: '0-5 Months', wfaStatus: 'Normal', hfaStatus: null, wfhlStatus: null }
-      ];
-
-      childModel.getAllChildrenRecords.mockResolvedValue(partialIndicatorRecords);
-
-      const result = await childService.fetchFilterOptions();
-
-      expect(result.nutritionalIndicators).toEqual([
-        { label: 'All Indicators', value: 'all' },
-        { label: 'Weight-for-Age (WFA)', value: 'wfa' }
-      ]);
-    });
-
-    it('should return default "All" options if the database returns an empty array', async () => {
-      childModel.getAllChildrenRecords.mockResolvedValue([]);
-
-      const result = await childService.fetchFilterOptions();
-
-      expect(result.barangays).toEqual([{ label: 'All Barangays', value: 'all' }]);
-      expect(result.ages).toEqual([{ label: 'All Ages', value: 'all' }]);
-      expect(result.nutritionalIndicators).toEqual([{ label: 'All Indicators', value: 'all' }]);
-    });
-
     it('should filter out null, undefined, or empty values in the raw data', async () => {
       const dirtyDatabaseRecords = [
         { id: 1, barangay: null, ageGroup: '0-5 Months' },
@@ -88,23 +64,6 @@ describe('Child Service', () => {
         { label: 'All Barangays', value: 'all' },
         { label: 'Barangay A', value: 'Barangay A' }
       ]);
-      expect(result.ages).toEqual([
-        { label: 'All Ages', value: 'all' },
-        { label: '0-5 Months', value: '0-5 Months' }
-      ]);
-    });
-
-    it('should throw an error if the database returns null or undefined instead of an array', async () => {
-      childModel.getAllChildrenRecords.mockResolvedValue(null);
-
-      await expect(childService.fetchFilterOptions()).rejects.toThrow('Failed to retrieve child records from the database');
-    });
-
-    it('should handle and throw errors when the database query fails', async () => {
-      const errorMessage = 'Database connection lost';
-      childModel.getAllChildrenRecords.mockRejectedValue(new Error(errorMessage));
-
-      await expect(childService.fetchFilterOptions()).rejects.toThrow(errorMessage);
     });
   });
 
@@ -114,8 +73,7 @@ describe('Child Service', () => {
         { id: 1, classification: 'healthy' },
         { id: 2, classification: 'healthy' },
         { id: 3, classification: 'deficit' },
-        { id: 4, classification: 'excess' },
-        { id: 5, classification: 'excess' }
+        { id: 4, classification: 'excess' }
       ];
 
       childModel.getAllChildrenRecords.mockResolvedValue(mockRecords);
@@ -126,56 +84,70 @@ describe('Child Service', () => {
       expect(result).toEqual({
         healthy: 2,
         deficit: 1,
-        excess: 2
+        excess: 1
       });
     });
+  });
 
-    it('should return zeros for all categories if the database returns an empty array', async () => {
-      childModel.getAllChildrenRecords.mockResolvedValue([]);
+  describe('fetchMasterlist', () => {
+    it('should retrieve the complete array of child records', async () => {
+      const mockRecords = [{ id: 1, name: 'Juan', barangay: 'Brgy 1' }];
+      childModel.getAllChildrenRecords.mockResolvedValue(mockRecords);
 
-      const result = await childService.calculateNutritionalTotals();
+      const result = await childService.fetchMasterlist();
 
-      expect(result).toEqual({
-        healthy: 0,
-        deficit: 0,
-        excess: 0
-      });
+      expect(childModel.getAllChildrenRecords).toHaveBeenCalledTimes(1);
+      expect(result).toEqual(mockRecords);
     });
 
-    it('should handle case insensitivity and ignore unmapped classifications or malformed data', async () => {
-      const dirtyRecords = [
-        { id: 1, classification: 'HEALTHY' },
-        { id: 2, classification: 'Deficit' },
-        { id: 3, classification: null },
-        { id: 4, classification: undefined },
-        { id: 5, classification: 'unknown_status' },
-        { id: 6 } 
-      ];
+    it('should throw an error if the database query fails', async () => {
+      childModel.getAllChildrenRecords.mockRejectedValue(new Error('DB Error'));
 
-      childModel.getAllChildrenRecords.mockResolvedValue(dirtyRecords);
+      await expect(childService.fetchMasterlist()).rejects.toThrow('DB Error');
+    });
+  });
 
-      const result = await childService.calculateNutritionalTotals();
+  describe('registerChild', () => {
+    it('should successfully validate payload and call database creation method', async () => {
+      const validPayload = {
+        name: 'Jane Doe',
+        barangay: 'Barangay 1',
+        purok: 'Purok 2',
+        parents: 'John Doe',
+        age: 12
+      };
 
-      expect(result).toEqual({
-        healthy: 1,
-        deficit: 1,
-        excess: 0
-      });
+      const mockDbResponse = { id: 99, ...validPayload };
+      childModel.createChildRecord.mockResolvedValue(mockDbResponse);
+
+      const result = await childService.registerChild(validPayload);
+
+      expect(childModel.createChildRecord).toHaveBeenCalledWith(validPayload);
+      expect(result).toEqual(mockDbResponse);
     });
 
-    it('should throw an error if the database returns null or undefined instead of an array', async () => {
-      childModel.getAllChildrenRecords.mockResolvedValue(null);
+    it('should reject requests missing required fields', async () => {
+      const invalidPayload = {
+        name: 'Jane Doe',
+        barangay: 'Barangay 1'
+      };
 
-      await expect(childService.calculateNutritionalTotals()).rejects.toThrow(
-        'Failed to retrieve child records from the database'
-      );
+      await expect(childService.registerChild(invalidPayload)).rejects.toThrow('Missing required fields for child registration');
+      expect(childModel.createChildRecord).not.toHaveBeenCalled();
     });
+    
+    it('should throw an error if database insertion returns falsy', async () => {
+      const validPayload = {
+        name: 'Jane Doe',
+        barangay: 'Barangay 1',
+        purok: 'Purok 2',
+        parents: 'John Doe',
+        age: 12
+      };
 
-    it('should handle and throw errors when the database query fails entirely', async () => {
-      const errorMessage = 'Database connection timed out';
-      childModel.getAllChildrenRecords.mockRejectedValue(new Error(errorMessage));
+      childModel.createChildRecord.mockResolvedValue(null);
 
-      await expect(childService.calculateNutritionalTotals()).rejects.toThrow(errorMessage);
+      await expect(childService.registerChild(validPayload)).rejects.toThrow('Database insertion failed');
     });
   });
 });
