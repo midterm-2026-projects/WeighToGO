@@ -73,14 +73,14 @@ Create visualizations to monitor nutritional trends and compare health issues ac
 Develop an interactive map for visualizing barangay nutritional risk levels.
 
 #### Sub-Tasks
-- Embed a Leaflet map viewport centered on the target municipality.
+-  map viewport centered on the target municipality.
 - Implement dynamic color-coded map markers based on nutritional risk levels:
   - Red (High Risk)
   - Yellow (Moderate Risk)
   - Green (Low Risk)
 
 #### Deliverables
-- Leaflet map viewport centered on the target municipality.
+- map viewport centered on the target municipality.
 - Dynamic color-coded map markers.
 
 #### Acceptance Criteria
@@ -91,28 +91,7 @@ Develop an interactive map for visualizing barangay nutritional risk levels.
 
 ## Week 3
 
-### Day 1: Build Insight Side Panel UI
-
-#### Task Description
-Create a side panel that displays detailed health insights when a barangay marker is selected.
-
-#### Sub-Tasks
-- Create a slide-out side panel that opens when a barangay map marker is clicked.
-- Design layout sections for:
-  - Health data summaries
-  - Action indicators
-
-#### Deliverables
-- Slide-out side panel UI.
-- Structured layout zones for health insights.
-
-#### Acceptance Criteria
-- Clicking a barangay marker opens the side panel.
-- The side panel displays health summaries and action indicators.
-
----
-
-### Day 2: Develop API Endpoint for KPI Metrics and Filter Controls
+### Day 1: Develop API Endpoint for KPI Metrics and Filter Controls
 
 #### Task Description
 Create backend services for KPI metrics and filter options.
@@ -134,6 +113,29 @@ Create backend services for KPI metrics and filter options.
 - The API returns a successful status code and aggregated KPI counts.
 - Database queries accurately calculate KPI totals.
 - Dropdown filter options are returned correctly.
+
+### Day 2: Build Insight Side Panel UI
+
+#### Task Description
+Create a side panel that displays detailed health insights when a barangay marker is selected.
+
+#### Sub-Tasks
+- Create a slide-out side panel that opens when a barangay map marker is clicked.
+- Design layout sections for:
+  - Health data summaries
+  - Action indicators
+
+#### Deliverables
+- Slide-out side panel UI.
+- Structured layout zones for health insights.
+
+#### Acceptance Criteria
+- Clicking a barangay marker opens the side panel.
+- The side panel displays health summaries and action indicators.
+
+---
+
+
 
 ---
 
