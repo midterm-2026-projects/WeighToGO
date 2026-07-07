@@ -1,4 +1,4 @@
-import * as kpiModel from '../models/kpi.model.js';
+import * as kpiModel from '../models/healthRecord.model.js';
 
 export const fetchKpiMetrics = async (filters) => {
   const totals = await kpiModel.getKpiTotals(filters);

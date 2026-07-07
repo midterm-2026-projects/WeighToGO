@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as kpiService from '../src/service/kpi.service.js';
-import * as kpiModel from '../src/models/kpi.model.js';
+import * as kpiService from '../src/service/healthRecord.service.js';
+import * as kpiModel from '../src/models/healthRecord.model.js';
 
-vi.mock('../src/models/kpi.model.js', () => ({
+// FIXED: This path must exactly match the import path above
+vi.mock('../src/models/healthRecord.model.js', () => ({
   getKpiTotals: vi.fn()
 }));
 
