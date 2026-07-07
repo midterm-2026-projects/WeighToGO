@@ -42,32 +42,4 @@ describe('Interactive Barangay Map', () => {
     expect(screen.getByText('Nutritional Cases:')).toBeInTheDocument();
   });
 
-  // NEW TESTS FOR SIDE PANEL INTEGRATION
-  it('should open and display the side panel when a barangay marker is clicked', async () => {
-    const user = userEvent.setup();
-    const marker = screen.getByTestId('marker-1'); 
-    
-    // Click the map marker
-    await user.click(marker);
-    
-    // Verify side panel content appears
-    expect(screen.getByText('Registered Children')).toBeInTheDocument();
-    expect(screen.getByText('Nutritional Status Breakdown')).toBeInTheDocument();
-  });
-
-  it('should close the side panel when the close button is clicked inside it', async () => {
-    const user = userEvent.setup();
-    const marker = screen.getByTestId('marker-1'); 
-    
-    // Open the panel first
-    await user.click(marker);
-    expect(screen.getByText('Registered Children')).toBeInTheDocument();
-
-    // Click the close button
-    const closeButton = screen.getByText('✕');
-    await user.click(closeButton);
-
-    // Verify side panel content is gone
-    expect(screen.queryByText('Registered Children')).not.toBeInTheDocument();
-  });
 });

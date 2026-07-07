@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import MapSidePanel from './mapSidePanel';
+
 
 const MAP_DATA = [
   { 
@@ -118,12 +118,7 @@ export default function BarangayMap() {
           );
         })}
 
-        {/* Slide-in Side Panel */}
-        <MapSidePanel 
-          barangay={selectedBarangay} 
-          onClose={() => setSelectedBarangay(null)} 
-          getRiskDetails={getRiskDetails} 
-        />
+        
 
       </div>
     </div>
