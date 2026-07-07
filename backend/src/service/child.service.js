@@ -60,5 +60,29 @@ export default {
     }, { healthy: 0, deficit: 0, excess: 0 });
 
     return totals;
+  },
+
+  async fetchMasterlist() {
+    const records = await childModel.getAllChildrenRecords();
+
+    if (!records) {
+      throw new Error('Failed to retrieve masterlist from the database');
+    }
+
+    return records;
+  },
+
+  async registerChild(payload) {
+    if (!payload.name || !payload.barangay || !payload.purok || !payload.parents || payload.age === undefined) {
+      throw new Error('Missing required fields for child registration');
+    }
+    
+    const newRecord = await childModel.createChildRecord(payload);
+    
+    if (!newRecord) {
+      throw new Error('Database insertion failed');
+    }
+    
+    return newRecord;
   }
 };
