@@ -102,25 +102,21 @@ export default {
   },
 
   // -- merged from your filter controller --
-  async filterChildMasterlist(barangay, ageGroup, status) {
-    if (barangay && barangay !== 'All' && !BARANGAY_OPTIONS.includes(barangay)) {
-      throw new Error('Invalid Barangay selection');
-    }
+async filterChildMasterlist(barangay, ageGroup, status) {
+  if (barangay && barangay !== 'All' && !BARANGAY_OPTIONS.includes(barangay)) {
+    throw new Error('Invalid Barangay selection');
+  }
 
-    if (ageGroup && ageGroup !== 'All' && !AGE_OPTIONS.includes(ageGroup)) {
-      throw new Error('Invalid Nutritional Age Group selection');
-    }
+  if (ageGroup && ageGroup !== 'All' && !AGE_OPTIONS.includes(ageGroup)) {
+    throw new Error('Invalid Nutritional Age Group selection');
+  }
 
-    if (status && status !== 'All' && !STATUS_OPTIONS.includes(status)) {
-      throw new Error('Invalid Nutritional Status selection');
-    }
+  if (status && status !== 'All' && !STATUS_OPTIONS.includes(status)) {
+    throw new Error('Invalid Nutritional Status selection');
+  }
 
-    const classification = status && status !== 'All' ? STATUS_TO_CLASSIFICATION[status] : undefined;
+  const classification = status && status !== 'All' ? STATUS_TO_CLASSIFICATION[status] : undefined;
 
-    return await childModel.getFilteredChildren({
-      barangay,
-      ageGroup,
-      classification
-    });
+  return await childModel.filterChildMasterlist(barangay, ageGroup, classification);
   }
 };

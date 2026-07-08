@@ -7,7 +7,6 @@ export default {
       { id: 4, name: 'Liza Soberano', barangay: 'Barangay 3', purok: 'Purok 4', parents: 'John Soberano', age: 3, ageGroup: '0-5 Months', wfaStatus: 'Normal', hfaStatus: 'Severe Stunted', wfhlStatus: 'Normal', classification: 'excess' },
       { id: 5, name: 'Nadine Lustre', barangay: 'Barangay 2', purok: 'Purok 1', parents: 'James Lustre', age: 4, ageGroup: '0-5 Months', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'healthy' },
 
-      // -- merged from your masterlist data --
       { id: 6, name: 'Juan Dela Cruz', barangay: 'Brgy. Navotas', purok: 'Purok 2', parents: 'Maria Cruz', age: 10, ageGroup: '6-11 Months', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'healthy' },
       { id: 7, name: 'Baby Lanatan', barangay: 'Brgy. Lanatan', purok: 'Purok 4', parents: 'Ana Lanatan', age: 20, ageGroup: '12-59 Months', wfaStatus: 'Underweight', hfaStatus: 'Stunted', wfhlStatus: 'Wasted', classification: 'deficit' },
       { id: 8, name: 'Kyle Reyes', barangay: 'Brgy. Navotas', purok: 'Purok 1', parents: 'Trishia Reyes', age: 37, ageGroup: '12-59 Months', wfaStatus: 'Overweight', hfaStatus: 'Normal', wfhlStatus: 'Overweight', classification: 'excess' }
@@ -22,21 +21,13 @@ export default {
     };
   },
 
-  async getFilteredChildren({ barangay, ageGroup, classification } = {}) {
-    let records = await this.getAllChildrenRecords();
+  async filterChildMasterlist(barangay, ageGroup, classification) {
+    const records = await this.getAllChildrenRecords();
 
-    if (barangay && barangay !== 'All') {
-      records = records.filter(child => child.barangay === barangay);
-    }
-
-    if (ageGroup && ageGroup !== 'All') {
-      records = records.filter(child => child.ageGroup === ageGroup);
-    }
-
-    if (classification && classification !== 'All') {
-      records = records.filter(child => child.classification === classification);
-    }
-
-    return records;
+    return records.filter(child =>
+      (!barangay || barangay === 'All' || child.barangay === barangay) &&
+      (!ageGroup || ageGroup === 'All' || child.ageGroup === ageGroup) &&
+      (!classification || classification === 'All' || child.classification === classification)
+    );
   }
 };
