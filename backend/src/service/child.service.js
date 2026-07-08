@@ -1,5 +1,20 @@
 import childModel from '../models/child.model.js';
 
+const BARANGAY_OPTIONS = [
+  "Brgy. Caloocan", "Brgy. Lanatan", "Brgy. Uno", "Brgy. Ermita",
+  "Brgy. Gumamela", "Brgy. Navotas", "Brgy. Palikpikan", "Brgy. Sampaga",
+  "Brgy. Santol", "Brgy. Dilao", "Brgy. Dalig", "Brgy. Langgangan",
+  "Brgy. Canda", "Brgy. Pooc", "Brgy. Tanggoy"
+];
+const AGE_OPTIONS = ["0-11 Months", "12-23 Months", "24-59 Months"];
+const STATUS_OPTIONS = ["Normal", "Malnourished", "Obese"];
+
+const STATUS_TO_CLASSIFICATION = {
+  Normal: 'healthy',
+  Malnourished: 'deficit',
+  Obese: 'excess'
+};
+
 export default {
   async fetchFilterOptions() {
     const children = await childModel.getAllChildrenRecords();
@@ -26,7 +41,7 @@ export default {
     ];
 
     const indicatorOptions = [{ label: 'All Indicators', value: 'all' }];
-    
+
     if (hasWfa) indicatorOptions.push({ label: 'Weight-for-Age (WFA)', value: 'wfa' });
     if (hasHfa) indicatorOptions.push({ label: 'Height-for-Age (HFA)', value: 'hfa' });
     if (hasWfhl) indicatorOptions.push({ label: 'Weight-for-Length/Height (WFH/L)', value: 'wfhl' });
@@ -47,7 +62,7 @@ export default {
 
     const totals = records.reduce((acc, currentRecord) => {
       const status = currentRecord?.classification?.toLowerCase();
-      
+
       if (status === 'healthy') {
         acc.healthy += 1;
       } else if (status === 'deficit') {
@@ -55,7 +70,7 @@ export default {
       } else if (status === 'excess') {
         acc.excess += 1;
       }
-      
+
       return acc;
     }, { healthy: 0, deficit: 0, excess: 0 });
 
@@ -76,13 +91,32 @@ export default {
     if (!payload.name || !payload.barangay || !payload.purok || !payload.parents || payload.age === undefined) {
       throw new Error('Missing required fields for child registration');
     }
-    
+
     const newRecord = await childModel.createChildRecord(payload);
-    
+
     if (!newRecord) {
       throw new Error('Database insertion failed');
     }
-    
+
     return newRecord;
+  },
+
+  // -- merged from your filter controller --
+async filterChildMasterlist(barangay, ageGroup, status) {
+  if (barangay && barangay !== 'All' && !BARANGAY_OPTIONS.includes(barangay)) {
+    throw new Error('Invalid Barangay selection');
+  }
+
+  if (ageGroup && ageGroup !== 'All' && !AGE_OPTIONS.includes(ageGroup)) {
+    throw new Error('Invalid Nutritional Age Group selection');
+  }
+
+  if (status && status !== 'All' && !STATUS_OPTIONS.includes(status)) {
+    throw new Error('Invalid Nutritional Status selection');
+  }
+
+  const classification = status && status !== 'All' ? STATUS_TO_CLASSIFICATION[status] : undefined;
+
+  return await childModel.filterChildMasterlist(barangay, ageGroup, classification);
   }
 };
