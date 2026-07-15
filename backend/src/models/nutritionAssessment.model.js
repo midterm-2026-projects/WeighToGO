@@ -23,4 +23,4 @@ export default {
       { id: 20, month: 'Dec', status: 'Mod. Wasted (MW)', classification: 'deficit', barangay: 'Barangay 2' }
     ];
   }
-};
+}; 

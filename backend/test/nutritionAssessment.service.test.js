@@ -20,7 +20,7 @@ describe('Nutrition Assessment Service', () => {
       expect(result).toHaveLength(5);
       expect(result[0]).toEqual({ label: 'Normal (N)', value: 'Normal (N)' });
     });
-  });
+  }); 
 
   describe('Trendline - fetchTrendlineData', () => {
     it('should aggregate data for all statuses across all months when no filter is provided', async () => {
