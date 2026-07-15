@@ -5,12 +5,28 @@ import childModel from "../src/models/child.model.js";
 
 vi.mock("../src/models/child.model.js");
 
+const mockDatabase = [
+  {
+    id: 1,
+    role: "Administrator (Admin)",
+    email: "user@health.gov.ph",
+    password: "Balayan2026!"
+  },
+  {
+    id: 2,
+    role: "Barangay Nutrition Scholar",
+    email: "bns@health.gov.ph",
+    password: "BNSBalayan2026!",
+    assignedBarangay: "Barangay 2"
+  }
+];
+
 describe("Filter Queries Integration", () => {
   let adminToken;
 
   beforeEach(async () => {
     clearSessions();
-    const authSession = await login("user@health.gov.ph", "Administrator (Admin)", "Balayan2026!");
+    const authSession = await login("user@health.gov.ph", "Administrator (Admin)", "Balayan2026!", mockDatabase);
     adminToken = authSession.token;
   });
 
@@ -49,7 +65,7 @@ describe("Filter Queries Integration", () => {
 
     const result = await getReports(adminToken);
 
-    expect(result).toHaveLength([]);
+    expect(result).toEqual([]);
   });
 
   it("should ignore and omit child records that do not contain a defined barangay location", async () => {
@@ -82,7 +98,7 @@ describe("Role-Based Health Reports Database Integration Controls", () => {
     ];
     vi.mocked(childModel.getAllChildrenRecords).mockResolvedValue(mockDbResponse);
 
-    const authSession = await login("bns@health.gov.ph", "Barangay Nutrition Scholar", "BNSBalayan2026!");
+    const authSession = await login("bns@health.gov.ph", "Barangay Nutrition Scholar", "BNSBalayan2026!", mockDatabase);
     const result = await getReports(authSession.token);
 
     expect(result.length).toBe(1);

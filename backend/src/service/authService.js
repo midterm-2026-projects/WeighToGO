@@ -1,30 +1,16 @@
-const mockDatabase = [
-  {
-    id: 1,
-    role: "Administrator (Admin)",
-    email: "user@health.gov.ph",
-    password: "Balayan2026!"
-  },
-  {
-    id: 2,
-    role: "Barangay Nutrition Scholar",
-    email: "bns@health.gov.ph",
-    password: "BNSBalayan2026!",
-    assignedBarangay: "Barangay 2"
-  }
-];
-
 const ACTIVE_TOKENS = new Map();
 
-export async function findAdminByEmailAndRole(email, role) {
-  const user = mockDatabase.find(
+// Accepts 'database' dynamically as a parameter
+export async function findAdminByEmailAndRole(email, role, database = []) {
+  const user = database.find(
     (account) => account.email === email && account.role === role
   );
   return user || null;
 }
 
-export async function login(email, role, password) {
-  const user = await findAdminByEmailAndRole(email, role);
+// Accepts 'database' here to pass it along to findAdminByEmailAndRole
+export async function login(email, role, password, database = []) {
+  const user = await findAdminByEmailAndRole(email, role, database);
 
   if (!user || user.password !== password) {
     throw new Error("Invalid database credentials");

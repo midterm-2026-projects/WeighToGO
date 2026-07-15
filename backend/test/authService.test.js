@@ -1,11 +1,43 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { login, verifyRouteSecurity, clearSessions } from "../src/service/authService.js";
-import getReports from "../src/service/analyticsService.js";
-import childModel from "../src/models/child.model.js";
+import { login, verifyRouteSecurity, clearSessions, findAdminByEmailAndRole, getSession } from "../src/service/authService.js";
 
-vi.mock("../src/models/child.model.js");
+const mockDatabase = [
+  {
+    id: 1,
+    role: "Administrator (Admin)",
+    email: "user@health.gov.ph",
+    password: "Balayan2026!"
+  },
+  {
+    id: 2,
+    role: "Barangay Nutrition Scholar",
+    email: "bns@health.gov.ph",
+    password: "BNSBalayan2026!",
+    assignedBarangay: "Barangay 2"
+  }
+];
 
-describe("Authentication", () => {
+describe("findAdminByEmailAndRole", () => {
+  it("should successfully find and return a user with matching email and role", async () => {
+    const email = "user@health.gov.ph";
+    const role = "Administrator (Admin)";
+    const result = await findAdminByEmailAndRole(email, role, mockDatabase);
+
+    expect(result).not.toBeNull();
+    expect(result.email).toBe(email);
+    expect(result.role).toBe(role);
+  });
+
+  it("should return null if no user matches the email and role combination", async () => {
+    const email = "nonexistent@health.gov.ph";
+    const role = "Administrator (Admin)";
+    const result = await findAdminByEmailAndRole(email, role, mockDatabase);
+
+    expect(result).toBeNull();
+  });
+});
+
+describe("login", () => {
   beforeEach(() => {
     clearSessions();
   });
@@ -15,7 +47,7 @@ describe("Authentication", () => {
     const validRole = "Administrator (Admin)";
     const validPass = "Balayan2026!";
 
-    const result = await login(validEmail, validRole, validPass);
+    const result = await login(validEmail, validRole, validPass, mockDatabase);
 
     expect(result.success).toBe(true);
     expect(result.token).toBeDefined();
@@ -28,7 +60,7 @@ describe("Authentication", () => {
     const validRole = "Barangay Nutrition Scholar";
     const validPass = "BNSBalayan2026!";
 
-    const result = await login(validEmail, validRole, validPass);
+    const result = await login(validEmail, validRole, validPass, mockDatabase);
 
     expect(result.success).toBe(true);
     expect(result.token).toBeDefined();
@@ -41,7 +73,7 @@ describe("Authentication", () => {
     const validRole = "Administrator (Admin)";
     const invalidPass = "WrongPassword!";
 
-    const resultPromise = login(validEmail, validRole, invalidPass);
+    const resultPromise = login(validEmail, validRole, invalidPass, mockDatabase);
 
     await expect(resultPromise).rejects.toThrow("Invalid database credentials");
   });
@@ -51,9 +83,15 @@ describe("Authentication", () => {
     const mismatchedRole = "Barangay Nutrition Scholar";
     const validPass = "Balayan2026!";
 
-    const resultPromise = login(validEmail, mismatchedRole, validPass);
+    const resultPromise = login(validEmail, mismatchedRole, validPass, mockDatabase);
 
     await expect(resultPromise).rejects.toThrow("Invalid database credentials");
+  });
+});
+
+describe("verifyRouteSecurity", () => {
+  beforeEach(() => {
+    clearSessions();
   });
 
   it("should block attempts to access the masterlist when no token is provided", async () => {
@@ -66,7 +104,7 @@ describe("Authentication", () => {
   });
 
   it("should permit access to protected views if a valid active session token is supplied", async () => {
-    const authSession = await login("user@health.gov.ph", "Administrator (Admin)", "Balayan2026!");
+    const authSession = await login("user@health.gov.ph", "Administrator (Admin)", "Balayan2026!", mockDatabase);
     const validToken = authSession.token;
     const protectedPath = "/masterlist";
 
@@ -77,46 +115,34 @@ describe("Authentication", () => {
   });
 });
 
-describe("Role-Based Health Reports Database Integration", () => {
+describe("getSession", () => {
   beforeEach(() => {
     clearSessions();
   });
 
-  it("should permit Administrator to query and aggregate metrics for all barangays", async () => {
-    const mockDbResponse = [
-      { id: 1, barangay: "Barangay 1", wfaStatus: "Normal", hfaStatus: "Normal", wfhlStatus: "Normal" },
-      { id: 2, barangay: "Barangay 2", wfaStatus: "Underweight", hfaStatus: "Normal", wfhlStatus: "Normal" }
-    ];
-    vi.mocked(childModel.getAllChildrenRecords).mockResolvedValue(mockDbResponse);
+  it("should return the correct session object for a valid, active token", async () => {
+    const authSession = await login("user@health.gov.ph", "Administrator (Admin)", "Balayan2026!", mockDatabase);
+    const session = getSession(authSession.token);
 
-    const authSession = await login("user@health.gov.ph", "Administrator (Admin)", "Balayan2026!");
-    const result = await getReports(authSession.token);
-
-    expect(result.length).toBe(2);
-    expect(result.find(r => r.barangay === "Barangay 1")).toBeDefined();
-    expect(result.find(r => r.barangay === "Barangay 2")).toBeDefined();
+    expect(session).not.toBeNull();
+    expect(session.email).toBe("user@health.gov.ph");
+    expect(session.role).toBe("Administrator (Admin)");
   });
 
-  it("should restrict Barangay Nutrition Scholar to retrieve only their assigned barangay reports", async () => {
-    const mockDbResponse = [
-      { id: 1, barangay: "Barangay 1", wfaStatus: "Normal", hfaStatus: "Normal", wfhlStatus: "Normal" },
-      { id: 2, barangay: "Barangay 2", wfaStatus: "Underweight", hfaStatus: "Normal", wfhlStatus: "Normal" }
-    ];
-    vi.mocked(childModel.getAllChildrenRecords).mockResolvedValue(mockDbResponse);
-
-    const authSession = await login("bns@health.gov.ph", "Barangay Nutrition Scholar", "BNSBalayan2026!");
-    const result = await getReports(authSession.token);
-
-    expect(result.length).toBe(1);
-    expect(result[0].barangay).toBe("Barangay 2");
-    expect(result.find(r => r.barangay === "Barangay 1")).toBeUndefined();
+  it("should return null if the token does not exist in the active sessions", () => {
+    const session = getSession("nonexistent-token");
+    expect(session).toBeNull();
   });
+});
 
-  it("should block database query operations if session token is missing or invalid", async () => {
-    const invalidToken = "fake-expired-token";
+describe("clearSessions", () => {
+  it("should empty all active session tokens when executed", async () => {
+    const authSession = await login("user@health.gov.ph", "Administrator (Admin)", "Balayan2026!", mockDatabase);
 
-    const resultPromise = getReports(invalidToken);
+    expect(getSession(authSession.token)).not.toBeNull();
 
-    await expect(resultPromise).rejects.toThrow("Unauthorized: Invalid or missing session token");
+    clearSessions();
+
+    expect(getSession(authSession.token)).toBeNull();
   });
 });
