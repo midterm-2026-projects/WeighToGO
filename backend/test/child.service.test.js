@@ -152,7 +152,6 @@ describe('Child Service', () => {
     });
   });
 
-  // -- merged from your filter test file --
   describe('filterChildMasterlist', () => {
     it('should throw an error if the selected Barangay is not on the masterlist configuration', async () => {
       const invalidBarangay = 'Brgy. NonExistent';
@@ -182,6 +181,35 @@ describe('Child Service', () => {
       const result = childService.filterChildMasterlist(validBarangay, defaultAge, invalidStatus);
 
       await expect(result).rejects.toThrow('Invalid Nutritional Status selection');
+    });
+  });
+
+  describe('fetchFilteredMasterlist', () => {
+    const sampleRecords = [
+      { id: 1, name: 'Juan Dela Cruz', barangay: 'Barangay 1', ageGroup: '12-59 Months' },
+      { id: 2, name: 'Anna Reyes', barangay: 'Barangay 2', ageGroup: '6-11 Months' },
+      { id: 3, name: 'Mark Santos', barangay: 'Barangay 1', ageGroup: '12-59 Months' }
+    ];
+
+    it('should narrow down records based on search input keywords', async () => {
+      childModel.getAllChildrenRecords.mockResolvedValue(sampleRecords);
+
+      const result = await childService.fetchFilteredMasterlist({ search: 'anna' });
+      expect(result).toEqual([sampleRecords[1]]);
+    });
+
+    it('should filter datasets using dropdown criteria options', async () => {
+      childModel.getAllChildrenRecords.mockResolvedValue(sampleRecords);
+
+      const result = await childService.fetchFilteredMasterlist({ barangay: 'Barangay 1', ageGroup: '12-59 Months' });
+      expect(result).toEqual([sampleRecords[0], sampleRecords[2]]);
+    });
+
+    it('should return all available records if parameters are empty or set to all', async () => {
+      childModel.getAllChildrenRecords.mockResolvedValue(sampleRecords);
+
+      const result = await childService.fetchFilteredMasterlist({ barangay: 'all', ageGroup: 'all' });
+      expect(result).toEqual(sampleRecords);
     });
   });
 });
