@@ -36,7 +36,6 @@ describe('Nutrition Assessment Service', () => {
     });
   });
 
-
   describe('Bar Graph - fetchBarGraphFilters', () => {
     it('should return month and classification filter options', async () => {
       const result = await nutritionAssessmentService.fetchBarGraphFilters();
@@ -65,7 +64,6 @@ describe('Nutrition Assessment Service', () => {
 
       const result = await nutritionAssessmentService.fetchBarGraphData();
 
-      // Categories should be unique sorted barangays
       expect(result.categories).toEqual(['Barangay 1', 'Barangay 2']);
       expect(result.series).toHaveLength(3); 
 
