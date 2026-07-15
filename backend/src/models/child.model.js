@@ -6,7 +6,8 @@ export default {
       { id: 3, barangay: 'Barangay 1', ageGroup: '12-59 Months', wfaStatus: 'Severe Underweight', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'deficit' },
       { id: 4, barangay: 'Barangay 3', ageGroup: '0-5 Months', wfaStatus: 'Normal', hfaStatus: 'Severe Stunted', wfhlStatus: 'Normal', classification: 'excess' },
       { id: 5, barangay: 'Barangay 2', ageGroup: '0-5 Months', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'healthy' }
-    ];
+    ],
+    [
       { id: 1, name: 'Juan Dela Cruz', barangay: 'Barangay 1', purok: 'Purok 1', parents: 'Maria Dela Cruz', age: 12, ageGroup: '12-59 Months', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'healthy' },
       { id: 2, name: 'Anna Reyes', barangay: 'Barangay 2', purok: 'Purok 3', parents: 'Pedro Reyes', age: 8, ageGroup: '6-11 Months', wfaStatus: 'Underweight', hfaStatus: 'Stunted', wfhlStatus: 'Wasted', classification: 'deficit' },
       { id: 3, name: 'Mark Santos', barangay: 'Barangay 1', purok: 'Purok 2', parents: 'Jose Santos', age: 24, ageGroup: '12-59 Months', wfaStatus: 'Severe Underweight', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'deficit' },
@@ -35,5 +36,38 @@ export default {
       (!ageGroup || ageGroup === 'All' || child.ageGroup === ageGroup) &&
       (!classification || classification === 'All' || child.classification === classification)
     );
+  },
+
+  async updateChildAssessment(childId, updateData) {
+    const children = await this.getAllChildrenRecords();
+    const child = children.find(c => c.id === Number(childId));
+    if (!child) return null;
+
+    const newHistoryEntry = {
+      date: new Date().toISOString().split('T')[0],
+      height: updateData.height,
+      weight: updateData.weight,
+      wfaStatus: updateData.wfaStatus || child.wfaStatus,
+      hfaStatus: updateData.hfaStatus || child.hfaStatus,
+      wfhlStatus: updateData.wfhlStatus || child.wfhlStatus,
+      classification: updateData.classification || child.classification
+    };
+
+    return {
+      ...child,
+      height: updateData.height,
+      weight: updateData.weight,
+      wfaStatus: updateData.wfaStatus || child.wfaStatus,
+      hfaStatus: updateData.hfaStatus || child.hfaStatus,
+      wfhlStatus: updateData.wfhlStatus || child.wfhlStatus,
+      classification: updateData.classification || child.classification,
+      history: [...(child.history || []), newHistoryEntry]
+    };
+  },
+
+  async getChildAssessmentHistory(childId) {
+    const children = await this.getAllChildrenRecords();
+    const child = children.find(c => c.id === Number(childId));
+    return child ? (child.history || []) : [];
   }
 };

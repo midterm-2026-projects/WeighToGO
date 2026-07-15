@@ -2,13 +2,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import childService from '../src/service/child.service.js';
 import childModel from '../src/models/child.model.js';
 
-vi.mock('../src/models/child.model.js', () => ({
-  default: {
+vi.mock('../src/models/child.model.js', () => {
+  const mockModel = {
     getAllChildrenRecords: vi.fn(),
     createChildRecord: vi.fn(),
-    getFilteredChildren: vi.fn()
-  }
-}));
+    getFilteredChildren: vi.fn(),
+    updateChildAssessment: vi.fn(),
+    getChildAssessmentHistory: vi.fn()
+  };
+  
+  return {
+    default: mockModel,
+    ...mockModel
+  };
+});
 
 describe('Child Service', () => {
   beforeEach(() => {
@@ -152,7 +159,6 @@ describe('Child Service', () => {
     });
   });
 
-  // -- merged from your filter test file --
   describe('filterChildMasterlist', () => {
     it('should throw an error if the selected Barangay is not on the masterlist configuration', async () => {
       const invalidBarangay = 'Brgy. NonExistent';
@@ -182,6 +188,71 @@ describe('Child Service', () => {
       const result = childService.filterChildMasterlist(validBarangay, defaultAge, invalidStatus);
 
       await expect(result).rejects.toThrow('Invalid Nutritional Status selection');
+    });
+  });
+
+  describe('fetchFilteredMasterlist', () => {
+    const sampleRecords = [
+      { id: 1, name: 'Juan Dela Cruz', barangay: 'Barangay 1', ageGroup: '12-59 Months' },
+      { id: 2, name: 'Anna Reyes', barangay: 'Barangay 2', ageGroup: '6-11 Months' },
+      { id: 3, name: 'Mark Santos', barangay: 'Barangay 1', ageGroup: '12-59 Months' }
+    ];
+
+    it('should narrow down records based on search input keywords', async () => {
+      childModel.getAllChildrenRecords.mockResolvedValue(sampleRecords);
+
+      const result = await childService.fetchFilteredMasterlist({ search: 'anna' });
+      expect(result).toEqual([sampleRecords[1]]);
+    });
+
+    it('should filter datasets using dropdown criteria options', async () => {
+      childModel.getAllChildrenRecords.mockResolvedValue(sampleRecords);
+
+      const result = await childService.fetchFilteredMasterlist({ barangay: 'Barangay 1', ageGroup: '12-59 Months' });
+      expect(result).toEqual([sampleRecords[0], sampleRecords[2]]);
+    });
+
+    it('should return all available records if parameters are empty or set to all', async () => {
+      childModel.getAllChildrenRecords.mockResolvedValue(sampleRecords);
+
+      const result = await childService.fetchFilteredMasterlist({ barangay: 'all', ageGroup: 'all' });
+      expect(result).toEqual(sampleRecords);
+    });
+  });
+
+  describe('updateMonthlyAssessment', () => {
+    it('should successfully update metrics and add historical entries', async () => {
+      const mockPayload = { height: 95, weight: 14, wfaStatus: 'Normal', hfaStatus: 'Normal', classification: 'healthy' };
+      const expectedRecord = { id: 1, ...mockPayload, history: [mockPayload] };
+
+      childModel.updateChildAssessment.mockResolvedValue(expectedRecord);
+
+      const result = await childService.updateMonthlyAssessment(1, mockPayload);
+
+      expect(childModel.updateChildAssessment).toHaveBeenCalledWith(1, mockPayload);
+      expect(result).toEqual(expectedRecord);
+    });
+
+    it('should throw an error if if height or weight is not provided', async () => {
+      await expect(childService.updateMonthlyAssessment(1, { height: 90 }))
+        .rejects.toThrow('Height and weight are required parameters');
+    });
+  });
+
+  describe('fetchCheckupHistory', () => {
+    it('should only retrieve the history of the requested child', async () => {
+      const mockHistory = [
+        { date: '2026-01-10', height: 92, weight: 13.5, wfaStatus: 'Normal' },
+        { date: '2026-02-12', height: 93.5, weight: 14.1, wfaStatus: 'Normal' }
+      ];
+
+      childModel.getChildAssessmentHistory.mockResolvedValue(mockHistory);
+
+      const result = await childService.fetchCheckupHistory(1);
+
+      expect(childModel.getChildAssessmentHistory).toHaveBeenCalledWith(1);
+      expect(result).toHaveLength(2);
+      expect(result).toEqual(mockHistory);
     });
   });
 });
