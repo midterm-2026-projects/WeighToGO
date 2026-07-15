@@ -71,7 +71,7 @@ export default function BarangayMap() {
         </div>
       </div>
 
-      <div className="relative w-full h-[450px] bg-slate-50 border border-slate-200 rounded-lg overflow-hidden flex">
+      <div className="relative w-full h-112.5 bg-slate-50 border border-slate-200 rounded-lg overflow-hidden flex">
         
         <div className="absolute inset-0 opacity-10" style={{ 
           backgroundImage: 'radial-gradient(#cbd5e1 1px, transparent 1px)', 

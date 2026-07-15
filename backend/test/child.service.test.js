@@ -5,7 +5,8 @@ import childModel from '../src/models/child.model.js';
 vi.mock('../src/models/child.model.js', () => ({
   default: {
     getAllChildrenRecords: vi.fn(),
-    createChildRecord: vi.fn()
+    createChildRecord: vi.fn(),
+    getFilteredChildren: vi.fn()
   }
 }));
 
@@ -27,7 +28,7 @@ describe('Child Service', () => {
       const result = await childService.fetchFilterOptions();
 
       expect(childModel.getAllChildrenRecords).toHaveBeenCalledTimes(1);
-      
+
       expect(result.barangays).toEqual([
         { label: 'All Barangays', value: 'all' },
         { label: 'Barangay A', value: 'Barangay A' },
@@ -135,7 +136,7 @@ describe('Child Service', () => {
       await expect(childService.registerChild(invalidPayload)).rejects.toThrow('Missing required fields for child registration');
       expect(childModel.createChildRecord).not.toHaveBeenCalled();
     });
-    
+
     it('should throw an error if database insertion returns falsy', async () => {
       const validPayload = {
         name: 'Jane Doe',
@@ -148,6 +149,39 @@ describe('Child Service', () => {
       childModel.createChildRecord.mockResolvedValue(null);
 
       await expect(childService.registerChild(validPayload)).rejects.toThrow('Database insertion failed');
+    });
+  });
+
+  // -- merged from your filter test file --
+  describe('filterChildMasterlist', () => {
+    it('should throw an error if the selected Barangay is not on the masterlist configuration', async () => {
+      const invalidBarangay = 'Brgy. NonExistent';
+      const defaultAge = 'All';
+      const defaultStatus = 'All';
+
+      const result = childService.filterChildMasterlist(invalidBarangay, defaultAge, defaultStatus);
+
+      await expect(result).rejects.toThrow('Invalid Barangay selection');
+    });
+
+    it('should throw an error if the age group value format selection does not exist', async () => {
+      const defaultBarangay = 'All';
+      const invalidAgeGroup = '60+ Months';
+      const defaultStatus = 'All';
+
+      const result = childService.filterChildMasterlist(defaultBarangay, invalidAgeGroup, defaultStatus);
+
+      await expect(result).rejects.toThrow('Invalid Nutritional Age Group selection');
+    });
+
+    it('should throw an error if the selected nutritional status option is invalid', async () => {
+      const validBarangay = 'Brgy. Navotas';
+      const defaultAge = 'All';
+      const invalidStatus = 'Severe';
+
+      const result = childService.filterChildMasterlist(validBarangay, defaultAge, invalidStatus);
+
+      await expect(result).rejects.toThrow('Invalid Nutritional Status selection');
     });
   });
 });
