@@ -109,4 +109,4 @@ export default {
       series: series
     };
   }
-}; 
+};  
