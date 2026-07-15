@@ -1,13 +1,23 @@
 import childModel from "../models/child.model.js";
+import { getSession } from "./authService.js";
 
-async function getReports() {
+async function getReports(token) {
+  const session = getSession(token);
+  if (!session) {
+    throw new Error("Unauthorized: Invalid or missing session token");
+  }
+
+  const { role, assignedBarangay } = session;
   const children = await childModel.getAllChildrenRecords();
-
   const reportMatrix = {};
 
   children.forEach((child) => {
     const brgy = child.barangay;
     if (!brgy) return; 
+
+    if (role === "Barangay Nutrition Scholar" && brgy !== assignedBarangay) {
+      return;
+    }
 
     if (!reportMatrix[brgy]) {
       reportMatrix[brgy] = {
@@ -44,4 +54,5 @@ async function getReports() {
 
   return Object.values(reportMatrix);
 }
+
 export default getReports;
