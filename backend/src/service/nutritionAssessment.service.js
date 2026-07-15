@@ -5,7 +5,6 @@ const ALL_STATUSES = ['Normal (N)', 'Overweight (OW)', 'Obese (OB)', 'Mod. Waste
 const ALL_CLASSIFICATIONS = ['healthy', 'deficit', 'excess'];
 
 export default {
-  
   async fetchTrendlineFilters() {
     return ALL_STATUSES.map(status => ({
       label: status,
@@ -49,7 +48,6 @@ export default {
     };
   },
 
- 
   async fetchBarGraphFilters() {
     return {
       months: [
@@ -70,16 +68,13 @@ export default {
       throw new Error('Failed to retrieve nutrition assessments from the database');
     }
 
-   
     const activeMonth = filters.month || 'All';
     const activeClassifications = filters.classifications && Array.isArray(filters.classifications) && filters.classifications.length > 0
       ? filters.classifications
       : ALL_CLASSIFICATIONS;
 
-    
     const uniqueBarangays = [...new Set(records.map(r => r.barangay).filter(Boolean))].sort();
 
-   
     const barData = {};
     uniqueBarangays.forEach(barangay => {
       barData[barangay] = {};
@@ -88,19 +83,17 @@ export default {
       });
     });
 
-  
     records.forEach(record => {
       const isMonthMatch = activeMonth === 'All' || record.month === activeMonth;
       const isClassMatch = activeClassifications.includes(record.classification);
-      
+
       if (isMonthMatch && isClassMatch && barData[record.barangay]) {
         barData[record.barangay][record.classification] += 1;
       }
     });
 
-    
     const series = activeClassifications.map(cls => ({
-      name: cls.charAt(0).toUpperCase() + cls.slice(1), // Capitalize for legend
+      name: cls.charAt(0).toUpperCase() + cls.slice(1),
       data: uniqueBarangays.map(barangay => barData[barangay][cls])
     }));
 
@@ -109,4 +102,4 @@ export default {
       series: series
     };
   }
-};  
+};
