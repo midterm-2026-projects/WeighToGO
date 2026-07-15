@@ -140,5 +140,24 @@ export default {
       }
       return true;
     });
+  },
+
+  async updateMonthlyAssessment(childId, payload) {
+    if (!childId) throw new Error('Child ID is required for monthly updates');
+    if (payload.height === undefined || payload.weight === undefined) {
+      throw new Error('Height and weight are required parameters');
+    }
+
+    const updatedRecord = await childModel.updateChildAssessment(childId, payload);
+    if (!updatedRecord) {
+      throw new Error('Child record not found or update failed');
+    }
+
+    return updatedRecord;
+  },
+
+  async fetchCheckupHistory(childId) {
+    if (!childId) throw new Error('Child ID is required to fetch history');
+    return await childModel.getChildAssessmentHistory(childId);
   }
 };
