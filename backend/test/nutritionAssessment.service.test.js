@@ -13,6 +13,7 @@ describe('Nutrition Assessment Service', () => {
     vi.clearAllMocks();
   });
 
+  
   describe('Trendline - fetchTrendlineFilters', () => {
     it('should return all available checkbox filter options', async () => {
       const result = await nutritionAssessmentService.fetchTrendlineFilters();
@@ -34,66 +35,95 @@ describe('Nutrition Assessment Service', () => {
       expect(result.categories).toEqual(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']);
       expect(result.series).toHaveLength(5);
     });
+  });
 
-    it('should properly filter and return only the selected statuses', async () => {
+
+  describe('Bar Graph - fetchBarGraphFilters', () => {
+    it('should return month and classification filter options', async () => {
+      const result = await nutritionAssessmentService.fetchBarGraphFilters();
+      
+      expect(result).toHaveProperty('months');
+      expect(result.months.length).toBe(13); 
+      expect(result.months[0]).toEqual({ label: 'All Months', value: 'All' });
+      
+      expect(result).toHaveProperty('classifications');
+      expect(result.classifications).toEqual([
+        { label: 'Healthy', value: 'healthy' },
+        { label: 'Deficit', value: 'deficit' },
+        { label: 'Excess', value: 'excess' }
+      ]);
+    });
+  });
+
+  describe('Bar Graph - fetchBarGraphData', () => {
+    it('should aggregate data across all barangays and months by default', async () => {
       const mockRecords = [
-        { id: 1, month: 'Mar', status: 'Normal (N)' },
-        { id: 2, month: 'Mar', status: 'Obese (OB)' },
-        { id: 3, month: 'Apr', status: 'Obese (OB)' }
+        { id: 1, month: 'Jan', classification: 'healthy', barangay: 'Barangay 1' },
+        { id: 2, month: 'Feb', classification: 'healthy', barangay: 'Barangay 1' },
+        { id: 3, month: 'Jan', classification: 'deficit', barangay: 'Barangay 2' }
       ];
       nutritionAssessmentModel.getAllAssessments.mockResolvedValue(mockRecords);
 
-      const filters = { statuses: ['Obese (OB)'] };
-      const result = await nutritionAssessmentService.fetchTrendlineData(filters);
+      const result = await nutritionAssessmentService.fetchBarGraphData();
 
-      expect(result.series).toHaveLength(1);
-      expect(result.series[0].name).toBe('Obese (OB)');
-      expect(result.series[0].data[2]).toBe(1); 
-      expect(result.series[0].data[3]).toBe(1); 
+      // Categories should be unique sorted barangays
+      expect(result.categories).toEqual(['Barangay 1', 'Barangay 2']);
+      expect(result.series).toHaveLength(3); 
+
+      const healthySeries = result.series.find(s => s.name === 'Healthy');
+      expect(healthySeries.data).toEqual([2, 0]);
+
+      const deficitSeries = result.series.find(s => s.name === 'Deficit');
+      expect(deficitSeries.data).toEqual([0, 1]); 
     });
 
-    it('should return an empty series payload if the database is empty', async () => {
+    it('should filter correctly by a specific month', async () => {
+      const mockRecords = [
+        { id: 1, month: 'Jan', classification: 'healthy', barangay: 'Barangay 1' },
+        { id: 2, month: 'Feb', classification: 'excess', barangay: 'Barangay 1' },
+        { id: 3, month: 'Jan', classification: 'deficit', barangay: 'Barangay 2' }
+      ];
+      nutritionAssessmentModel.getAllAssessments.mockResolvedValue(mockRecords);
+
+      const filters = { month: 'Jan' };
+      const result = await nutritionAssessmentService.fetchBarGraphData(filters);
+
+      const healthySeries = result.series.find(s => s.name === 'Healthy');
+      expect(healthySeries.data).toEqual([1, 0]); 
+
+      const excessSeries = result.series.find(s => s.name === 'Excess');
+      expect(excessSeries.data).toEqual([0, 0]); 
+    });
+
+    it('should filter correctly by specific classifications', async () => {
+      const mockRecords = [
+        { id: 1, month: 'Jan', classification: 'healthy', barangay: 'Barangay 1' },
+        { id: 2, month: 'Jan', classification: 'deficit', barangay: 'Barangay 2' }
+      ];
+      nutritionAssessmentModel.getAllAssessments.mockResolvedValue(mockRecords);
+
+      const filters = { classifications: ['deficit'] };
+      const result = await nutritionAssessmentService.fetchBarGraphData(filters);
+
+      expect(result.series).toHaveLength(1); 
+      expect(result.series[0].name).toBe('Deficit');
+      expect(result.series[0].data).toEqual([0, 1]); 
+    });
+
+    it('should return empty data arrays if the database is empty', async () => {
       nutritionAssessmentModel.getAllAssessments.mockResolvedValue([]);
 
-      const result = await nutritionAssessmentService.fetchTrendlineData();
+      const result = await nutritionAssessmentService.fetchBarGraphData();
 
-      expect(result.series).toHaveLength(5);
-      result.series.forEach(statusSeries => {
-        statusSeries.data.forEach(count => {
-          expect(count).toBe(0);
-        });
-      });
+      expect(result.categories).toEqual([]);
+      expect(result.series).toHaveLength(3);
+      expect(result.series[0].data).toEqual([]);
     });
 
-    it('should ignore malformed or unrecognized statuses in the database', async () => {
-      const dirtyRecords = [
-        { id: 1, month: 'Jan', status: 'Normal (N)' },
-        { id: 2, month: 'Jan', status: 'UNKNOWN_STATUS' },
-        { id: 3, month: 'INVALID_MONTH', status: 'Normal (N)' }
-      ];
-      nutritionAssessmentModel.getAllAssessments.mockResolvedValue(dirtyRecords);
-
-      const result = await nutritionAssessmentService.fetchTrendlineData();
-      
-      const normalSeries = result.series.find(s => s.name === 'Normal (N)');
-      expect(normalSeries.data[0]).toBe(1); 
-      
-      const unknownInSeries = result.series.find(s => s.name === 'UNKNOWN_STATUS');
-      expect(unknownInSeries).toBeUndefined();
-    });
-
-    it('should throw an error if the database returns null', async () => {
-      nutritionAssessmentModel.getAllAssessments.mockResolvedValue(null);
-
-      await expect(nutritionAssessmentService.fetchTrendlineData()).rejects.toThrow(
-        'Failed to retrieve nutrition assessments from the database'
-      );
-    });
-
-    it('should propagate errors from the database query', async () => {
+    it('should throw an error if the database query fails', async () => {
       nutritionAssessmentModel.getAllAssessments.mockRejectedValue(new Error('Connection Failed'));
 
-      await expect(nutritionAssessmentService.fetchTrendlineData()).rejects.toThrow('Connection Failed');
+      await expect(nutritionAssessmentService.fetchBarGraphData()).rejects.toThrow('Connection Failed');
     });
   });
 });
