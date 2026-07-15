@@ -36,5 +36,38 @@ export default {
       (!ageGroup || ageGroup === 'All' || child.ageGroup === ageGroup) &&
       (!classification || classification === 'All' || child.classification === classification)
     );
+  },
+
+  async updateChildAssessment(childId, updateData) {
+    const children = await this.getAllChildrenRecords();
+    const child = children.find(c => c.id === Number(childId));
+    if (!child) return null;
+
+    const newHistoryEntry = {
+      date: new Date().toISOString().split('T')[0],
+      height: updateData.height,
+      weight: updateData.weight,
+      wfaStatus: updateData.wfaStatus || child.wfaStatus,
+      hfaStatus: updateData.hfaStatus || child.hfaStatus,
+      wfhlStatus: updateData.wfhlStatus || child.wfhlStatus,
+      classification: updateData.classification || child.classification
+    };
+
+    return {
+      ...child,
+      height: updateData.height,
+      weight: updateData.weight,
+      wfaStatus: updateData.wfaStatus || child.wfaStatus,
+      hfaStatus: updateData.hfaStatus || child.hfaStatus,
+      wfhlStatus: updateData.wfhlStatus || child.wfhlStatus,
+      classification: updateData.classification || child.classification,
+      history: [...(child.history || []), newHistoryEntry]
+    };
+  },
+
+  async getChildAssessmentHistory(childId) {
+    const children = await this.getAllChildrenRecords();
+    const child = children.find(c => c.id === Number(childId));
+    return child ? (child.history || []) : [];
   }
 };
