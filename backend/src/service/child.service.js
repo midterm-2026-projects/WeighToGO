@@ -148,8 +148,22 @@ export default {
     }, { totalRegistered: 0, normal: 0, stunted: 0, obese: 0 });
 
     return {
-      summary,    
-      records     
+      summary,
+      records
     };
+  },
+
+  async submitChildAssessment(childId, assessmentData) {
+    if (!childId || !assessmentData.weight || !assessmentData.height) {
+      throw new Error('Child ID, weight, and height are required to submit an assessment');
+    }
+
+    const updatedRecord = await childModel.updateChildAssessment(childId, assessmentData);
+    
+    if (!updatedRecord) {
+      throw new Error('Child record not found or assessment update failed');
+    }
+
+    return updatedRecord;
   }
 };
