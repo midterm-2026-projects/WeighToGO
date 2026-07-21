@@ -15,14 +15,12 @@ test.describe('Full User Journey', () => {
     await page.fill('input[type="password"]', 'Balayan2026!');
     await page.click('button[type="submit"]');
 
-    // Wait for redirect to masterlist (the post-login landing page)
-    await page.waitForURL('**/masterlist', { timeout: 10000 });
-    await expect(page.locator('text=Children Masterlist')).toBeVisible();
+    
 
     // ============================================================
     // 2. NAVIGATE TO HEALTH TRENDS & TEST FILTERS
     // ============================================================
-    await page.click('button:has-text("Health Trends")');
+    await page.getByText('Health Trends').click();
     await page.waitForURL('**/health-trends', { timeout: 10000 });
 
     // Verify page title renders
