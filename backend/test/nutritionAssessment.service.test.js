@@ -6,7 +6,8 @@ vi.mock('../src/models/nutritionAssessment.model.js', () => ({
   default: {
     getAllAssessments: vi.fn(),
     getBarangayCoordinates: vi.fn(),
-    getNutritionalRiskAggregations: vi.fn()
+    getNutritionalRiskAggregations: vi.fn(),
+    getAssessmentsByBarangay: vi.fn()
   }
 }));
 
@@ -159,6 +160,43 @@ describe('Nutrition Assessment Service', () => {
       const b3 = result.find(r => r.barangay === 'Barangay 3');
       expect(b3.riskLevel).toBe('High');
       expect(b3.markerColor).toBe('red');
+    });
+  });
+
+  describe('Barangay Health Insights - fetchBarangayHealthInsights', () => {
+    it('should return detailed health statistics for a selected barangay', async () => {
+      const mockRecords = [
+        { id: 1, status: 'Normal (N)', classification: 'healthy', barangay: 'Barangay 1' },
+        { id: 3, status: 'Overweight (OW)', classification: 'excess', barangay: 'Barangay 1' },
+        { id: 5, status: 'Normal (N)', classification: 'healthy', barangay: 'Barangay 1' }
+      ];
+      nutritionAssessmentModel.getAssessmentsByBarangay.mockResolvedValue(mockRecords);
+
+      const result = await nutritionAssessmentService.fetchBarangayHealthInsights('Barangay 1');
+
+      expect(nutritionAssessmentModel.getAssessmentsByBarangay).toHaveBeenCalledWith('Barangay 1');
+      expect(result.total).toBe(3);
+      expect(result.classifications.healthy).toBe(2);
+      expect(result.classifications.excess).toBe(1);
+      expect(result.classifications.deficit).toBe(0);
+      expect(result.statuses['Normal (N)']).toBe(2);
+      expect(result.statuses['Overweight (OW)']).toBe(1);
+    });
+
+    it('should return an empty dataset without errors if no records exist for the barangay', async () => {
+      nutritionAssessmentModel.getAssessmentsByBarangay.mockResolvedValue([]);
+
+      const result = await nutritionAssessmentService.fetchBarangayHealthInsights('Unknown Barangay');
+
+      expect(result.total).toBe(0);
+      expect(result.classifications.healthy).toBe(0);
+      expect(result.classifications.deficit).toBe(0);
+      expect(result.classifications.excess).toBe(0);
+      expect(result.statuses).toEqual({});
+    });
+
+    it('should throw an error if no barangay identifier is provided', async () => {
+      await expect(nutritionAssessmentService.fetchBarangayHealthInsights()).rejects.toThrow('Barangay identifier is required');
     });
   });
 });
