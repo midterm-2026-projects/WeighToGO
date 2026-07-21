@@ -4,7 +4,7 @@ const ALL_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep
 const ALL_WFA_STATUSES = ["Normal", "Underweight", "Severe Underweight", "Overweight", "Obese"];
 const ALL_HFA_STATUSES = ["Normal", "Stunted", "Severe Stunted"];
 const ALL_WFHL_STATUSES = ["Normal", "Wasted", "Severely Wasted", "Overweight", "Obese"];
-const ALL_CLASSIFICATIONS = ["Normal", "stunted", "obese"];
+const ALL_CLASSIFICATIONS = ["normal", "stunted", "obese"];
 
 const STATUS_TYPE_MAP = {
   wfa: ALL_WFA_STATUSES,
