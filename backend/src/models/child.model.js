@@ -71,5 +71,10 @@ export default {
       const recordDate = new Date(child.createdAt);
       return (recordDate.getMonth() + 1) === Number(month) && recordDate.getFullYear() === Number(year);
     });
+  },
+
+  async getChildById(id) {
+    const records = await this.getAllChildrenRecords();
+    return records.find(child => child.id === Number(id)) || null;
   }
 };
