@@ -1,4 +1,5 @@
-import { login, verifyRouteSecurity, findAdminByEmailAndRole } from "./authService.js";
+import { login, verifyRouteSecurity } from "./authService.js";
+import { findAdminByEmailAndRole } from "../models/loginModel.js";
 
 const VALID_ROLES = ["Administrator (Admin)", "Barangay Nutrition Scholar"];
 const VALID_SIDENAV_ROUTES = ["/masterlist", "/health-reports"];
@@ -29,7 +30,12 @@ export async function loginService(role, email, password, database = []) {
   return matchedUser;
 }
 
-export async function executeUserAuthJourney(email, role, password, database = []) {
+export async function executeUserAuthJourney(
+  email,
+  role,
+  password,
+  database = []
+) {
   if (!email || !role || !password) {
     throw new Error("Missing authentication parameters");
   }
@@ -48,7 +54,7 @@ export async function executeUserAuthJourney(email, role, password, database = [
     authenticated: true,
     token: authResult.token,
     assignedRole: authResult.role,
-    targetView: authResult.redirectTo
+    targetView: authResult.redirectTo,
   };
 }
 
@@ -66,6 +72,6 @@ export async function verifySidenavRouting(token, requestedRoute) {
   return {
     route: requestedRoute,
     navigated: securityCheck.authorized,
-    statusCode: securityCheck.status
+    statusCode: securityCheck.status,
   };
 }

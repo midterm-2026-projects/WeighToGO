@@ -7,7 +7,7 @@ export default function MapSidePanel({ barangay, onClose, getRiskDetails }) {
   const getInsightMessage = (level) => {
     switch(level) {
       case 'Low Risk':
-        return 'Great job! This barangay maintains a healthy nutritional status with very few recorded cases. Continue standard monitoring.';
+        return 'Great job! This barangay maintains a normal nutritional status with very few recorded cases. Continue standard monitoring.';
       case 'Moderate Risk':
         return 'Needs attention. There is a noticeable number of nutritional cases. Early intervention and supplementary feeding programs are recommended.';
       case 'High Risk':
@@ -17,9 +17,17 @@ export default function MapSidePanel({ barangay, onClose, getRiskDetails }) {
     }
   };
 
+  const lightenColor = (hex) => {
+    if (!hex) return '#f0fdf4';
+    const r = parseInt(hex.slice(1,2), 16) * 17;
+    const g = parseInt(hex.slice(2,3), 16) * 17;
+    const b = parseInt(hex.slice(3,4), 16) * 17;
+    return `rgb(${Math.min(255, r + 200)},${Math.min(255, g + 200)},${Math.min(255, b + 200)})`;
+  };
+
   return (
     <div 
-      className={`absolute top-0 right-0 h-full w-full sm:w-80 bg-white shadow-[0_0_15px_rgba(0,0,0,0.1)] border-l border-gray-200 transform transition-transform duration-300 ease-in-out z-20 overflow-y-auto ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
+      className={`absolute top-0 right-0 h-full w-full sm:w-80 bg-white shadow-[0_0_15px_rgba(0,0,0,0.1)] border-l border-gray-200 transform transition-transform duration-300 ease-in-out z-[1000] overflow-y-auto ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
     >
       {barangay && risk && (
         <div className="p-5 flex flex-col h-full">
@@ -35,7 +43,10 @@ export default function MapSidePanel({ barangay, onClose, getRiskDetails }) {
           </div>
 
           <div className="mb-6">
-            <span className={`px-3 py-1 text-xs font-semibold text-white rounded-full ${risk.color}`}>
+            <span 
+              className="px-3 py-1 text-xs font-semibold text-white rounded-full"
+              style={{ backgroundColor: risk.color }}
+            >
               {risk.level}
             </span>
           </div>
@@ -50,26 +61,29 @@ export default function MapSidePanel({ barangay, onClose, getRiskDetails }) {
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Normal
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#22c55e' }}></span> Normal
                 </span>
                 <span className="font-semibold text-gray-800">{barangay.status.normal}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-orange-500"></span> Deficit (Underweight/Stunted)
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#f97316' }}></span> Stunted
                 </span>
-                <span className="font-semibold text-gray-800">{barangay.status.deficit}</span>
+                <span className="font-semibold text-gray-800">{barangay.status.stunted}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-purple-500"></span> Excess (Overweight/Obese)
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#a855f7' }}></span> Obese
                 </span>
-                <span className="font-semibold text-gray-800">{barangay.status.excess}</span>
+                <span className="font-semibold text-gray-800">{barangay.status.obese}</span>
               </div>
             </div>
           </div>
 
-          <div className={`mt-auto p-4 rounded-lg border ${risk.color.replace('bg-', 'border-').replace('500', '200').replace('400', '200')} ${risk.color.replace('bg-', 'bg-').replace('500', '50').replace('400', '50')}`}>
+          <div 
+            className="mt-auto p-4 rounded-lg border"
+            style={{ backgroundColor: lightenColor(risk.color), borderColor: risk.color + '40' }}
+          >
             <h3 className="text-sm font-bold text-gray-800 mb-2">Health Insight</h3>
             <p className="text-sm text-gray-700 leading-relaxed">
               {getInsightMessage(risk.level)}

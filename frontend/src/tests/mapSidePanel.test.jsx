@@ -10,13 +10,12 @@ describe('Map Side Panel Component', () => {
     name: 'Barangay 1',
     cases: 5,
     registeredChildren: 150,
-    status: { normal: 145, deficit: 3, excess: 2 }
+    status: { normal: 145, stunted: 3, obese: 2 }
   };
 
   const mockGetRiskDetails = vi.fn().mockReturnValue({
     level: 'Low Risk',
-    color: 'bg-green-500',
-    ring: 'ring-green-500/30'
+    color: '#22c55e'
   });
 
   it('should display the barangay name and total registered children when opened', () => {
@@ -33,7 +32,7 @@ describe('Map Side Panel Component', () => {
     expect(screen.getByText('Low Risk')).toBeInTheDocument();
   });
 
-  it('should display the exact nutritional status breakdown for normal, deficit, and excess cases', () => {
+  it('should display the exact nutritional status breakdown for normal, stunted, and obese cases', () => {
     render(
       <MapSidePanel
         barangay={mockBarangay}
@@ -56,7 +55,7 @@ describe('Map Side Panel Component', () => {
       />
     );
     
-    expect(screen.getByText(/Great job! This barangay maintains a healthy nutritional status/i)).toBeInTheDocument();
+    expect(screen.getByText(/Great job! This barangay maintains a normal nutritional status/i)).toBeInTheDocument();
   });
 
   it('should call onClose function when the close (✕) button is clicked', async () => {

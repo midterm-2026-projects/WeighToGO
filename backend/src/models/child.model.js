@@ -1,80 +1,154 @@
+import db from '../config/db.js';
+
 export default {
   async getAllChildrenRecords() {
-    return [
-      { id: 1, barangay: 'Barangay 1', ageGroup: '0-5 Months', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'healthy' },
-      { id: 2, barangay: 'Barangay 2', ageGroup: '6-11 Months', wfaStatus: 'Underweight', hfaStatus: 'Stunted', wfhlStatus: 'Wasted', classification: 'deficit' },
-      { id: 3, barangay: 'Barangay 1', ageGroup: '12-59 Months', wfaStatus: 'Severe Underweight', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'deficit' },
-      { id: 4, barangay: 'Barangay 3', ageGroup: '0-5 Months', wfaStatus: 'Normal', hfaStatus: 'Severe Stunted', wfhlStatus: 'Normal', classification: 'excess' },
-      { id: 5, barangay: 'Barangay 2', ageGroup: '0-5 Months', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'healthy' },
-      { id: 6, name: 'Juan Dela Cruz', barangay: 'Brgy. Navotas', purok: 'Purok 2', parents: 'Maria Cruz', age: 10, ageGroup: '6-11 Months', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal', classification: 'healthy' },
-      { id: 7, name: 'Baby Lanatan', barangay: 'Brgy. Lanatan', purok: 'Purok 4', parents: 'Ana Lanatan', age: 20, ageGroup: '12-59 Months', wfaStatus: 'Underweight', hfaStatus: 'Stunted', wfhlStatus: 'Wasted', classification: 'deficit' },
-      { id: 8, name: 'Kyle Reyes', barangay: 'Brgy. Navotas', purok: 'Purok 1', parents: 'Trishia Reyes', age: 37, ageGroup: '12-59 Months', wfaStatus: 'Overweight', hfaStatus: 'Normal', wfhlStatus: 'Overweight', classification: 'excess' }
-    ];
-  },
-
-  async createChildRecord(payload) {
-    return {
-      id: Math.floor(Math.random() * 1000) + 6,
-      ...payload,
-      createdAt: new Date().toISOString()
-    };
-  },
-
-  async filterChildMasterlist(barangay, ageGroup, classification) {
-    const records = await this.getAllChildrenRecords();
-
-    return records.filter(child =>
-      (!barangay || barangay === 'All' || child.barangay === barangay) &&
-      (!ageGroup || ageGroup === 'All' || child.ageGroup === ageGroup) &&
-      (!classification || classification === 'All' || child.classification === classification)
-    );
-  },
-
-  async updateChildAssessment(childId, updateData) {
-    const children = await this.getAllChildrenRecords();
-    const child = children.find(c => c.id === Number(childId));
-    if (!child) return null;
-
-    const newHistoryEntry = {
-      date: new Date().toISOString().split('T')[0],
-      height: updateData.height,
-      weight: updateData.weight,
-      wfaStatus: updateData.wfaStatus || child.wfaStatus,
-      hfaStatus: updateData.hfaStatus || child.hfaStatus,
-      wfhlStatus: updateData.wfhlStatus || child.wfhlStatus,
-      classification: updateData.classification || child.classification
-    };
-
-    return {
-      ...child,
-      height: updateData.height,
-      weight: updateData.weight,
-      wfaStatus: updateData.wfaStatus || child.wfaStatus,
-      hfaStatus: updateData.hfaStatus || child.hfaStatus,
-      wfhlStatus: updateData.wfhlStatus || child.wfhlStatus,
-      classification: updateData.classification || child.classification,
-      history: [...(child.history || []), newHistoryEntry]
-    };
-  },
-
-  async getChildAssessmentHistory(childId) {
-    const children = await this.getAllChildrenRecords();
-    const child = children.find(c => c.id === Number(childId));
-    return child ? (child.history || []) : [];
-  },
-
-  async getMonthlyReportData(month, year) {
-    const records = await this.getAllChildrenRecords();
-    
-    return records.filter(child => {
-      if (!child.createdAt) return true; 
-      const recordDate = new Date(child.createdAt);
-      return (recordDate.getMonth() + 1) === Number(month) && recordDate.getFullYear() === Number(year);
-    });
+    const [rows] = await db.query('SELECT * FROM children ORDER BY created_at DESC');
+    return rows;
   },
 
   async getChildById(id) {
-    const records = await this.getAllChildrenRecords();
-    return records.find(child => child.id === Number(id)) || null;
+    const [rows] = await db.query('SELECT * FROM children WHERE id = ?', [id]);
+    return rows[0] || null;
+  },
+
+  async createChildRecord(payload) {
+    const [result] = await db.query(
+      `INSERT INTO children (name, barangay, purok, parent_name, age_months, gender, birthdate, wfa_status, hfa_status, wfhl_status, classification, weight, height)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        payload.name, payload.barangay, payload.purok, payload.parent_name,
+        payload.age_months, payload.gender, payload.birthdate,
+        payload.wfa_status || 'Normal', payload.hfa_status || 'Normal',
+        payload.wfhl_status || 'Normal', payload.classification || 'normal',
+        payload.weight || null, payload.height || null
+      ]
+    );
+    return this.getChildById(result.insertId);
+  },
+
+  async filterChildMasterlist(barangay, ageGroup, classification) {
+    let query = 'SELECT * FROM children WHERE 1=1';
+    const params = [];
+
+    if (barangay && barangay !== 'All' && barangay !== 'all') {
+      query += ' AND barangay = ?';
+      params.push(barangay);
+    }
+
+    if (ageGroup && ageGroup !== 'All' && ageGroup !== 'all') {
+      query += ' AND age_months >= ? AND age_months <= ?';
+      if (ageGroup === '0-11 Months') { params.push(0, 11); }
+      else if (ageGroup === '12-23 Months') { params.push(12, 23); }
+      else if (ageGroup === '24-59 Months') { params.push(24, 59); }
+    }
+
+    if (classification && classification !== 'All' && classification !== 'all') {
+      query += ' AND classification = ?';
+      params.push(classification);
+    }
+
+    query += ' ORDER BY created_at DESC';
+    const [rows] = await db.query(query, params);
+    return rows;
+  },
+
+  async updateChildAssessment(childId, updateData) {
+    const child = await this.getChildById(childId);
+    if (!child) return null;
+
+    await db.query(
+      `UPDATE children SET weight = ?, height = ?, wfa_status = ?, hfa_status = ?, wfhl_status = ?, classification = ? WHERE id = ?`,
+      [
+        updateData.weight, updateData.height,
+        updateData.wfa_status || child.wfa_status,
+        updateData.hfa_status || child.hfa_status,
+        updateData.wfhl_status || child.wfhl_status,
+        updateData.classification || child.classification,
+        childId
+      ]
+    );
+
+    await db.query(
+      `INSERT INTO assessments (child_id, month, year, weight, height, wfa_status, hfa_status, wfhl_status, classification)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        childId,
+        updateData.month || new Date().toLocaleString('en-US', { month: 'short' }),
+        updateData.year || new Date().getFullYear(),
+        updateData.weight, updateData.height,
+        updateData.wfa_status || child.wfa_status,
+        updateData.hfa_status || child.hfa_status,
+        updateData.wfhl_status || child.wfhl_status,
+        updateData.classification || child.classification
+      ]
+    );
+
+    return this.getChildById(childId);
+  },
+
+  async getChildAssessmentHistory(childId) {
+    const [rows] = await db.query(
+      'SELECT * FROM assessments WHERE child_id = ? ORDER BY year DESC, FIELD(month, "Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")',
+      [childId]
+    );
+    return rows;
+  },
+
+  async getMonthlyReportData(month, year) {
+    const [rows] = await db.query(
+      'SELECT * FROM assessments WHERE month = ? AND year = ?',
+      [month, year]
+    );
+    return rows;
+  },
+
+  async getChildrenByBarangay(barangay) {
+    const [rows] = await db.query('SELECT * FROM children WHERE barangay = ?', [barangay]);
+    return rows;
+  },
+
+  async countAll() {
+    const [rows] = await db.query('SELECT COUNT(*) as count FROM children');
+    return rows[0].count;
+  },
+
+  async countByClassification() {
+    const [rows] = await db.query(
+      'SELECT classification, COUNT(*) as count FROM children GROUP BY classification'
+    );
+    const result = { total: 0, normal: 0, stunted: 0, obese: 0 };
+    rows.forEach(r => {
+      const cnt = Number(r.count);
+      result[r.classification] = cnt;
+      result.total += cnt;
+    });
+    return result;
+  },
+
+  async countFilteredTotals(barangay, ageGroup) {
+    let query = 'SELECT classification, COUNT(*) as count FROM children WHERE 1=1';
+    const params = [];
+
+    if (barangay && barangay !== 'all' && barangay !== 'All') {
+      query += ' AND barangay = ?';
+      params.push(barangay);
+    }
+
+    if (ageGroup && ageGroup !== 'all' && ageGroup !== 'All') {
+      query += ' AND age_months >= ? AND age_months <= ?';
+      if (ageGroup === '0-11 Months') { params.push(0, 11); }
+      else if (ageGroup === '12-23 Months') { params.push(12, 23); }
+      else if (ageGroup === '24-59 Months') { params.push(24, 59); }
+    }
+
+    query += ' GROUP BY classification';
+    const [rows] = await db.query(query, params);
+    const result = { total: 0, normal: 0, stunted: 0, obese: 0 };
+    rows.forEach(r => {
+      const cnt = Number(r.count);
+      result[r.classification] = cnt;
+      result.total += cnt;
+    });
+    return result;
   }
 };

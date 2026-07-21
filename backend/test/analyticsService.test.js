@@ -32,10 +32,10 @@ describe("Filter Queries Integration", () => {
 
   it("should accurately group, tally, and calculate totals by unique Barangay", async () => {
     const mockDbResponse = [
-      { id: 1, barangay: "Barangay 1", wfaStatus: "Normal", hfaStatus: "Normal", wfhlStatus: "Normal" },
-      { id: 2, barangay: "Barangay 1", wfaStatus: "Underweight", hfaStatus: "Stunted", wfhlStatus: "Normal" },
-      { id: 3, barangay: "Barangay 2", wfaStatus: "Severe Underweight", hfaStatus: "Normal", wfhlStatus: "Wasted" },
-      { id: 4, barangay: "Barangay 2", wfaStatus: "Overweight", hfaStatus: "Normal", wfhlStatus: "Normal" }
+      { id: 1, barangay: "Barangay 1", wfa_status: "Normal", hfa_status: "Normal", wfhl_status: "Normal" },
+      { id: 2, barangay: "Barangay 1", wfa_status: "Underweight", hfa_status: "Stunted", wfhl_status: "Normal" },
+      { id: 3, barangay: "Barangay 2", wfa_status: "Severe Underweight", hfa_status: "Normal", wfhl_status: "Wasted" },
+      { id: 4, barangay: "Barangay 2", wfa_status: "Overweight", hfa_status: "Normal", wfhl_status: "Normal" }
     ];
     vi.mocked(childModel.getAllChildrenRecords).mockResolvedValue(mockDbResponse);
 
@@ -70,9 +70,9 @@ describe("Filter Queries Integration", () => {
 
   it("should ignore and omit child records that do not contain a defined barangay location", async () => {
     const mockDbResponse = [
-      { id: 1, barangay: "Barangay 1", wfaStatus: "Normal", hfaStatus: "Normal", wfhlStatus: "Normal" },
-      { id: 2, barangay: null, wfaStatus: "Underweight", hfaStatus: "Normal", wfhlStatus: "Normal" },
-      { id: 3, barangay: undefined, wfaStatus: "Normal", hfaStatus: "Stunted", wfhlStatus: "Normal" }
+      { id: 1, barangay: "Barangay 1", wfa_status: "Normal", hfa_status: "Normal", wfhl_status: "Normal" },
+      { id: 2, barangay: null, wfa_status: "Underweight", hfa_status: "Normal", wfhl_status: "Normal" },
+      { id: 3, barangay: undefined, wfa_status: "Normal", hfa_status: "Stunted", wfhl_status: "Normal" }
     ];
     vi.mocked(childModel.getAllChildrenRecords).mockResolvedValue(mockDbResponse);
 
@@ -93,8 +93,8 @@ describe("Role-Based Health Reports Database Integration Controls", () => {
 
   it("should restrict Barangay Nutrition Scholar to retrieve only their assigned barangay reports", async () => {
     const mockDbResponse = [
-      { id: 1, barangay: "Barangay 1", wfaStatus: "Normal", hfaStatus: "Normal", wfhlStatus: "Normal" },
-      { id: 2, barangay: "Barangay 2", wfaStatus: "Underweight", hfaStatus: "Normal", wfhlStatus: "Normal" }
+      { id: 1, barangay: "Barangay 1", wfa_status: "Normal", hfa_status: "Normal", wfhl_status: "Normal" },
+      { id: 2, barangay: "Barangay 2", wfa_status: "Underweight", hfa_status: "Normal", wfhl_status: "Normal" }
     ];
     vi.mocked(childModel.getAllChildrenRecords).mockResolvedValue(mockDbResponse);
 
@@ -108,9 +108,6 @@ describe("Role-Based Health Reports Database Integration Controls", () => {
 
   it("should block database query operations if session token is missing or invalid", async () => {
     const invalidToken = "fake-expired-token";
-
-    const resultPromise = getReports(invalidToken);
-
-    await expect(resultPromise).rejects.toThrow("Unauthorized: Invalid or missing session token");
+    await expect(getReports(invalidToken)).rejects.toThrow("Unauthorized: Invalid or missing session token");
   });
 });
