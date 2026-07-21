@@ -1,7 +1,7 @@
-import { findAdminByEmailAndRole } from "../models/loginModel.js";
+import { login, verifyRouteSecurity, findAdminByEmailAndRole } from "./authService.js";
 
-export async function loginService(role, email, password) {
-  const validRoles = ["Administrator (Admin)", "Barangay Nutrition Scholar"];
+const VALID_ROLES = ["Administrator (Admin)", "Barangay Nutrition Scholar"];
+const VALID_SIDENAV_ROUTES = ["/masterlist", "/health-reports"];
 
   if (!role || !validRoles.includes(role)) throw new Error("Invalid dropdown selection");
   if (!email || !email.includes("@") || email.endsWith("@")) throw new Error("Invalid email format");
