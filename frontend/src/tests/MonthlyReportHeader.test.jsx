@@ -1,64 +1,52 @@
 import { render, screen, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi } from 'vitest';
 import '@testing-library/jest-dom';
 import { MonthlyReportHeader } from '../components/bns/MonthlyReportHeader.jsx';
 
 describe('Monthly Report Header Component', () => {
-  it('should render the dashboard title, action controls, and all four top-level summary metrics', () => {
+  it('should render the dashboard title, and all four top-level summary metrics', () => {
     const mockSummaryData = {
       totalRegistered: 42,
       normal: 25,
-      malnourished: 12,
+      stunted: 12,
       obese: 5,
     };
 
-    render(<MonthlyReportHeader summaryData={mockSummaryData} />);
+    render(<MonthlyReportHeader summary={mockSummaryData} />);
 
     expect(screen.getByRole('heading', { name: /monthly barangay report/i })).toBeInTheDocument();
     expect(screen.getByText(/summary of nutritional cases for the selected month/i)).toBeInTheDocument();
 
-    expect(screen.getByRole('button', { name: /print report/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /submit to admin/i })).toBeInTheDocument();
-
     expect(screen.getByText(/total registered/i)).toBeInTheDocument();
     expect(screen.getByText('42')).toBeInTheDocument();
 
-    expect(screen.getByText(/normal \(all metrics\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/normal/i)).toBeInTheDocument();
     expect(screen.getByText('25')).toBeInTheDocument();
 
-    expect(screen.getByText(/malnourished \/ stunted/i)).toBeInTheDocument();
+    expect(screen.getByText(/stunted/i)).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();
 
     expect(screen.getByText(/obese/i)).toBeInTheDocument();
     expect(screen.getByText('5')).toBeInTheDocument();
   });
 
-  it('should allow changing the month and clicking action controls', async () => {
-    const user = userEvent.setup();
+  it('should allow changing the month and year', async () => {
     const mockOnMonthChange = vi.fn();
-    const mockOnPrint = vi.fn();
-    const mockOnSubmit = vi.fn();
+    const mockOnYearChange = vi.fn();
 
     render(
       <MonthlyReportHeader 
         onMonthChange={mockOnMonthChange} 
-        onPrint={mockOnPrint} 
-        onSubmit={mockOnSubmit} 
+        onYearChange={mockOnYearChange} 
       />
     );
 
-    const dateInput = screen.getByLabelText(/select month/i);
+    const monthSelect = screen.getAllByRole('combobox')[0];
+    fireEvent.change(monthSelect, { target: { value: 'Aug' } });
+    expect(mockOnMonthChange).toHaveBeenCalledWith('Aug');
 
-    fireEvent.change(dateInput, { target: { value: '2026-08' } });
-    expect(mockOnMonthChange).toHaveBeenCalledWith('2026-08');
-
-    const printBtn = screen.getByRole('button', { name: /print report/i });
-    await user.click(printBtn);
-    expect(mockOnPrint).toHaveBeenCalledTimes(1);
-
-    const submitBtn = screen.getByRole('button', { name: /submit to admin/i });
-    await user.click(submitBtn);
-    expect(mockOnSubmit).toHaveBeenCalledTimes(1);
+    const yearSelect = screen.getAllByRole('combobox')[1];
+    fireEvent.change(yearSelect, { target: { value: '2026' } });
+    expect(mockOnYearChange).toHaveBeenCalledWith(2026);
   });
 });

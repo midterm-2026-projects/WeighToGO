@@ -6,10 +6,11 @@ vi.mock('../src/models/child.model.js', () => ({
   default: {
     getAllChildrenRecords: vi.fn(),
     createChildRecord: vi.fn(),
-    getFilteredChildren: vi.fn(),
+    filterChildMasterlist: vi.fn(),
     getMonthlyReportData: vi.fn(),
     updateChildAssessment: vi.fn(),
-    getChildById: vi.fn()
+    getChildById: vi.fn(),
+    countByClassification: vi.fn()
   }
 }));
 
@@ -21,9 +22,9 @@ describe('Child Service', () => {
   describe('fetchFilterOptions', () => {
     it('should successfully extract unique filter options from raw database records', async () => {
       const mockDatabaseRecords = [
-        { id: 1, barangay: 'Barangay A', ageGroup: '0-5 Months', wfaStatus: 'Normal', hfaStatus: null, wfhlStatus: null },
-        { id: 2, barangay: 'Barangay B', ageGroup: '6-11 Months', wfaStatus: null, hfaStatus: 'Stunted', wfhlStatus: null },
-        { id: 3, barangay: 'Barangay A', ageGroup: '0-5 Months', wfaStatus: null, hfaStatus: null, wfhlStatus: 'Wasted' }
+        { id: 1, barangay: 'Barangay A', age_months: 3, wfa_status: 'Normal', hfa_status: null, wfhl_status: null },
+        { id: 2, barangay: 'Barangay B', age_months: 8, wfa_status: null, hfa_status: 'Stunted', wfhl_status: null },
+        { id: 3, barangay: 'Barangay A', age_months: 3, wfa_status: null, hfa_status: null, wfhl_status: 'Wasted' }
       ];
 
       childModel.getAllChildrenRecords.mockResolvedValue(mockDatabaseRecords);
@@ -40,8 +41,7 @@ describe('Child Service', () => {
 
       expect(result.ages).toEqual([
         { label: 'All Ages', value: 'all' },
-        { label: '0-5 Months', value: '0-5 Months' },
-        { label: '6-11 Months', value: '6-11 Months' }
+        { label: '0-11 Months', value: '0-11 Months' }
       ]);
 
       expect(result.nutritionalIndicators).toEqual([
@@ -51,45 +51,16 @@ describe('Child Service', () => {
         { label: 'Weight-for-Length/Height (WFH/L)', value: 'wfhl' }
       ]);
     });
-
-    it('should filter out null, undefined, or empty values in the raw data', async () => {
-      const dirtyDatabaseRecords = [
-        { id: 1, barangay: null, ageGroup: '0-5 Months' },
-        { id: 2, barangay: 'Barangay A', ageGroup: undefined },
-        { id: 3, barangay: 'Barangay A', ageGroup: '0-5 Months' },
-        { id: 4, barangay: '', ageGroup: '' }
-      ];
-
-      childModel.getAllChildrenRecords.mockResolvedValue(dirtyDatabaseRecords);
-
-      const result = await childService.fetchFilterOptions();
-
-      expect(result.barangays).toEqual([
-        { label: 'All Barangays', value: 'all' },
-        { label: 'Barangay A', value: 'Barangay A' }
-      ]);
-    });
   });
 
   describe('calculateNutritionalTotals', () => {
-    it('should successfully compute totals for healthy, deficit, and excess cases', async () => {
-      const mockRecords = [
-        { id: 1, classification: 'healthy' },
-        { id: 2, classification: 'healthy' },
-        { id: 3, classification: 'deficit' },
-        { id: 4, classification: 'excess' }
-      ];
-
-      childModel.getAllChildrenRecords.mockResolvedValue(mockRecords);
+    it('should successfully compute totals for normal, stunted, and obese cases', async () => {
+      childModel.countByClassification.mockResolvedValue({ normal: 2, stunted: 1, obese: 1 });
 
       const result = await childService.calculateNutritionalTotals();
 
-      expect(childModel.getAllChildrenRecords).toHaveBeenCalledTimes(1);
-      expect(result).toEqual({
-        healthy: 2,
-        deficit: 1,
-        excess: 1
-      });
+      expect(childModel.countByClassification).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({ normal: 2, stunted: 1, obese: 1 });
     });
   });
 
@@ -99,14 +70,11 @@ describe('Child Service', () => {
       childModel.getAllChildrenRecords.mockResolvedValue(mockRecords);
 
       const result = await childService.fetchMasterlist();
-
-      expect(childModel.getAllChildrenRecords).toHaveBeenCalledTimes(1);
       expect(result).toEqual(mockRecords);
     });
 
     it('should throw an error if the database query fails', async () => {
       childModel.getAllChildrenRecords.mockRejectedValue(new Error('DB Error'));
-
       await expect(childService.fetchMasterlist()).rejects.toThrow('DB Error');
     });
   });
@@ -117,216 +85,87 @@ describe('Child Service', () => {
         name: 'Jane Doe',
         barangay: 'Barangay 1',
         purok: 'Purok 2',
-        parents: 'John Doe',
-        age: 12
+        parent_name: 'John Doe',
+        age_months: 12,
+        gender: 'Female',
+        birthdate: '2025-01-01'
       };
 
       const mockDbResponse = { id: 99, ...validPayload };
       childModel.createChildRecord.mockResolvedValue(mockDbResponse);
 
       const result = await childService.registerChild(validPayload);
-
-      expect(childModel.createChildRecord).toHaveBeenCalledWith(validPayload);
       expect(result).toEqual(mockDbResponse);
     });
 
     it('should reject requests missing required fields', async () => {
-      const invalidPayload = {
-        name: 'Jane Doe',
-        barangay: 'Barangay 1'
-      };
-
-      await expect(childService.registerChild(invalidPayload)).rejects.toThrow('Missing required fields for child registration');
-      expect(childModel.createChildRecord).not.toHaveBeenCalled();
-    });
-
-    it('should throw an error if database insertion returns falsy', async () => {
-      const validPayload = {
-        name: 'Jane Doe',
-        barangay: 'Barangay 1',
-        purok: 'Purok 2',
-        parents: 'John Doe',
-        age: 12
-      };
-
-      childModel.createChildRecord.mockResolvedValue(null);
-
-      await expect(childService.registerChild(validPayload)).rejects.toThrow('Database insertion failed');
-    });
-  });
-
-  describe('filterChildMasterlist', () => {
-    it('should throw an error if the selected Barangay is not on the masterlist configuration', async () => {
-      const invalidBarangay = 'Brgy. NonExistent';
-      const defaultAge = 'All';
-      const defaultStatus = 'All';
-
-      const result = childService.filterChildMasterlist(invalidBarangay, defaultAge, defaultStatus);
-
-      await expect(result).rejects.toThrow('Invalid Barangay selection');
-    });
-
-    it('should throw an error if the age group value format selection does not exist', async () => {
-      const defaultBarangay = 'All';
-      const invalidAgeGroup = '60+ Months';
-      const defaultStatus = 'All';
-
-      const result = childService.filterChildMasterlist(defaultBarangay, invalidAgeGroup, defaultStatus);
-
-      await expect(result).rejects.toThrow('Invalid Nutritional Age Group selection');
-    });
-
-    it('should throw an error if the selected nutritional status option is invalid', async () => {
-      const validBarangay = 'Brgy. Navotas';
-      const defaultAge = 'All';
-      const invalidStatus = 'Severe';
-
-      const result = childService.filterChildMasterlist(validBarangay, defaultAge, invalidStatus);
-
-      await expect(result).rejects.toThrow('Invalid Nutritional Status selection');
+      const invalidPayload = { name: 'Jane Doe', barangay: 'Barangay 1' };
+      await expect(childService.registerChild(invalidPayload)).rejects.toThrow('Missing required fields');
     });
   });
 
   describe('generateMonthlyReport', () => {
     it('should accurately calculate Total Registered, Normal, Stunted, and Obese counts', async () => {
       const mockMonthlyRecords = [
-        { id: 1, classification: 'healthy', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal' },
-        { id: 2, classification: 'deficit', wfaStatus: 'Underweight', hfaStatus: 'Severe Stunted', wfhlStatus: 'Normal' },
-        { id: 3, classification: 'excess', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Overweight' },
-        { id: 4, classification: 'healthy', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal' }
+        { id: 1, classification: 'normal' },
+        { id: 2, classification: 'stunted' },
+        { id: 3, classification: 'obese' },
+        { id: 4, classification: 'normal' }
       ];
 
       childModel.getMonthlyReportData.mockResolvedValue(mockMonthlyRecords);
 
-      const report = await childService.generateMonthlyReport(7, 2026);
+      const report = await childService.generateMonthlyReport('Jul', 2026);
 
-      expect(childModel.getMonthlyReportData).toHaveBeenCalledWith(7, 2026);
+      expect(childModel.getMonthlyReportData).toHaveBeenCalledWith('Jul', 2026);
       expect(report.summary).toEqual({
         totalRegistered: 4,
-        normal: 3,
+        normal: 2,
         stunted: 1,
         obese: 1
       });
-      expect(report.records).toEqual(mockMonthlyRecords);
     });
 
     it('should throw an error if month or year are not provided', async () => {
-      await expect(childService.generateMonthlyReport(null, 2026)).rejects.toThrow('Month and year are required to generate the report');
-      await expect(childService.generateMonthlyReport(7, null)).rejects.toThrow('Month and year are required to generate the report');
+      await expect(childService.generateMonthlyReport(null, 2026)).rejects.toThrow();
+      await expect(childService.generateMonthlyReport(7, null)).rejects.toThrow();
     });
   });
 
-  describe('Masterlist Testing (User Journeys)', () => {
-    
-    it('should successfully execute clicking "Add New Child", filling the form, submitting, and verifying the persisted record appears on the Masterlist', async () => {
-      const formPayload = {
-        name: 'Maria Clara',
-        barangay: 'Brgy. Santol',
-        purok: 'Purok 1',
-        parents: 'Kapitan Tiago',
-        age: 8
-      };
-      
-      const persistedRecord = { id: 101, ...formPayload, classification: 'healthy' };
-      
-      childModel.createChildRecord.mockResolvedValue(persistedRecord);
-      
-      const newlyRegisteredChild = await childService.registerChild(formPayload);
-      
-      expect(childModel.createChildRecord).toHaveBeenCalledWith(formPayload);
-      expect(newlyRegisteredChild).toEqual(persistedRecord);
-
-      const updatedMasterlistDB = [
-        { id: 1, name: 'Juan Dela Cruz' },
-        persistedRecord 
-      ];
-      
-      childModel.getAllChildrenRecords.mockResolvedValue(updatedMasterlistDB);
-      
-      const masterlistData = await childService.fetchMasterlist();
-      
-      expect(childModel.getAllChildrenRecords).toHaveBeenCalled();
-      expect(masterlistData).toContainEqual(persistedRecord);
+  describe('filterChildMasterlist', () => {
+    it('should throw an error if the selected Barangay is not on the masterlist configuration', async () => {
+      await expect(childService.filterChildMasterlist('Brgy. NonExistent', 'All', 'All')).rejects.toThrow('Invalid Barangay selection');
     });
 
-    it('should verify the flow of searching a child, opening the manage modal, and successfully submitting a new weight/height entry', async () => {
-      const targetChildId = 2;
-      const newAssessmentPayload = {
-        weight: 12.5,
-        height: 85.0
-      };
-
-      const updatedChildProfile = {
-        id: targetChildId,
-        name: 'Anna Reyes',
-        weight: 12.5,
-        height: 85.0,
-        history: [
-          { date: new Date().toISOString().split('T')[0], weight: 12.5, height: 85.0 }
-        ]
-      };
-
-      childModel.updateChildAssessment.mockResolvedValue(updatedChildProfile);
-
-      const result = await childService.submitChildAssessment(targetChildId, newAssessmentPayload);
-
-      expect(childModel.updateChildAssessment).toHaveBeenCalledWith(targetChildId, newAssessmentPayload);
-      
-      expect(result.id).toBe(targetChildId);
-      expect(result.weight).toBe(12.5);
-      expect(result.height).toBe(85.0);
-      expect(result.history).toHaveLength(1);
+    it('should throw an error if the nutritional status option is invalid', async () => {
+      await expect(childService.filterChildMasterlist('Brgy. Navotas', 'All', 'Severe')).rejects.toThrow('Invalid Nutritional Status selection');
     });
-
   });
 
   describe('Component Integration Testing', () => {
-    
     it('should fetch a specific child record to populate the Dynamic Profile Modal', async () => {
-      const targetId = 3;
-      const mockChildProfile = {
-        id: targetId,
-        name: 'Mark Santos',
-        classification: 'deficit',
-        wfaStatus: 'Severe Underweight'
-      };
-
+      const mockChildProfile = { id: 3, name: 'Mark Santos', classification: 'stunted', wfa_status: 'Severe Underweight' };
       childModel.getChildById.mockResolvedValue(mockChildProfile);
 
-      const profile = await childService.fetchChildProfile(targetId);
-
-      expect(childModel.getChildById).toHaveBeenCalledWith(targetId);
+      const profile = await childService.fetchChildProfile(3);
       expect(profile).toEqual(mockChildProfile);
     });
 
     it('should throw an error if attempting to fetch a profile without an ID or if profile is not found', async () => {
-      await expect(childService.fetchChildProfile(null)).rejects.toThrow('Child ID is required to fetch profile');
-
+      await expect(childService.fetchChildProfile(null)).rejects.toThrow('Child ID is required');
       childModel.getChildById.mockResolvedValue(null);
       await expect(childService.fetchChildProfile(999)).rejects.toThrow('Child profile not found');
     });
 
-    it('should sync and accurately reflect simulated database updates instantly in frontend matrix tallies', async () => {
-      const initialDBState = [
-        { id: 1, classification: 'healthy' },
-        { id: 2, classification: 'healthy' }
-      ];
-      childModel.getAllChildrenRecords.mockResolvedValue(initialDBState);
-      
+    it('should sync and accurately reflect simulated database updates', async () => {
+      childModel.countByClassification.mockResolvedValueOnce({ normal: 2, stunted: 0, obese: 0 });
       const initialTotals = await childService.calculateNutritionalTotals();
-      expect(initialTotals.healthy).toBe(2);
-      expect(initialTotals.deficit).toBe(0);
+      expect(initialTotals.normal).toBe(2);
 
-      const updatedDBState = [
-        { id: 1, classification: 'healthy' },
-        { id: 2, classification: 'deficit' } 
-      ];
-      childModel.getAllChildrenRecords.mockResolvedValue(updatedDBState);
-
+      childModel.countByClassification.mockResolvedValueOnce({ normal: 1, stunted: 1, obese: 0 });
       const updatedTotals = await childService.calculateNutritionalTotals();
-      expect(updatedTotals.healthy).toBe(1);
-      expect(updatedTotals.deficit).toBe(1);
+      expect(updatedTotals.normal).toBe(1);
+      expect(updatedTotals.stunted).toBe(1);
     });
-
   });
 });

@@ -1,71 +1,49 @@
-import { login, verifyRouteSecurity, findAdminByEmailAndRole } from "./authService.js";
+import { login, verifyRouteSecurity } from "./authService.js";
+import { findAdminByEmailAndRole } from "../models/loginModel.js";
 
 const VALID_ROLES = ["Administrator (Admin)", "Barangay Nutrition Scholar"];
 const VALID_SIDENAV_ROUTES = ["/masterlist", "/health-reports"];
 
-export async function loginService(role, email, password, database = []) {
-  const fail = (message) => {
-    throw new Error(message);
-  };
+export async function loginService(role, email, password) {
+  if (!role || !VALID_ROLES.includes(role))
+    throw new Error("Invalid dropdown selection");
+  if (!email || !email.includes("@") || email.endsWith("@"))
+    throw new Error("Invalid email format");
+  if (!password || password.length < 8)
+    throw new Error("Weak password configuration");
 
-  if (!role || !VALID_ROLES.includes(role)) {
-    fail("Invalid dropdown selection");
-  }
-
-  if (!email || !email.includes("@") || email.endsWith("@")) {
-    fail("Invalid email format");
-  }
-
-  if (!password || password.length < 8) {
-    fail("Weak password configuration");
-  }
-
-  const matchedUser = await findAdminByEmailAndRole(email, role, database);
-
-  if (!matchedUser || matchedUser.password !== password) {
-    fail("Incorrect email or password");
-  }
+  const matchedUser = await findAdminByEmailAndRole(email, role);
+  if (!matchedUser || matchedUser.password !== password)
+    throw new Error("Incorrect email or password");
 
   return matchedUser;
 }
 
-export async function executeUserAuthJourney(email, role, password, database = []) {
-  if (!email || !role || !password) {
+export async function executeUserAuthJourney(email, role, password) {
+  if (!email || !role || !password)
     throw new Error("Missing authentication parameters");
-  }
-
-  if (!VALID_ROLES.includes(role)) {
+  if (!VALID_ROLES.includes(role))
     throw new Error("Invalid user role specified for auth journey");
-  }
 
-  const authResult = await login(email, role, password, database);
-
-  if (!authResult || !authResult.success) {
-    throw new Error("Authentication journey failed");
-  }
-
+  const result = await login(email, role, password, []);
   return {
     authenticated: true,
-    token: authResult.token,
-    assignedRole: authResult.role,
-    targetView: authResult.redirectTo
+    token: result.token,
+    assignedRole: result.role,
+    targetView: result.redirectTo,
   };
 }
 
-export async function verifySidenavRouting(token, requestedRoute) {
-  if (!token) {
+export async function verifySidenavRouting(token, route) {
+  if (!token)
     throw new Error("Session token is required for Sidenav navigation");
-  }
-
-  if (!VALID_SIDENAV_ROUTES.includes(requestedRoute)) {
+  if (!VALID_SIDENAV_ROUTES.includes(route))
     throw new Error("Invalid sidebar navigation target");
-  }
 
-  const securityCheck = await verifyRouteSecurity(token, requestedRoute);
-
+  const result = await verifyRouteSecurity(token, route);
   return {
-    route: requestedRoute,
-    navigated: securityCheck.authorized,
-    statusCode: securityCheck.status
+    route: route,
+    navigated: result.authorized,
+    statusCode: result.status,
   };
 }

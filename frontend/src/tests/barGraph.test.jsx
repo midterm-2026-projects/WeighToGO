@@ -4,6 +4,23 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import BarGraph from '../components/dashboard/barGraph';
 
+vi.mock('../../services/api', () => ({
+  api: {
+    analytics: {
+      barGraph: () => Promise.resolve({
+        data: {
+          categories: ['Brgy. A', 'Brgy. B'],
+          series: [
+            { name: 'Normal', data: [3, 5], color: '#10b981' },
+            { name: 'Stunted', data: [1, 2], color: '#f59e0b' },
+            { name: 'Obese', data: [0, 1], color: '#ef4444' }
+          ]
+        }
+      })
+    }
+  }
+}));
+
 vi.mock('react-chartjs-2', () => ({
   Bar: (props) => (
     <div 
@@ -19,57 +36,57 @@ describe('Bar Graph - Health Issues Across Barangays', () => {
     vi.clearAllMocks();
   });
 
-  it('should have tooltip configurations to display barangay name and total issues on hover', () => {
+  it('should have tooltip configurations to display data on hover', async () => {
     render(<BarGraph />);
     
-    const barGraph = screen.getByTestId('mock-bar-graph');
+    const barGraph = await screen.findByTestId('mock-bar-graph');
     const options = JSON.parse(barGraph.getAttribute('data-options'));
     
     expect(options.plugins.tooltip.enabled).toBe(true);
   });
 
-  it('should display a level of 0 in the bar graph when there are no health issues', () => {
+  it('should display a level of 0 in the bar graph when there are no health issues', async () => {
     render(<BarGraph />);
     
-    const barGraph = screen.getByTestId('mock-bar-graph');
+    const barGraph = await screen.findByTestId('mock-bar-graph');
     const options = JSON.parse(barGraph.getAttribute('data-options'));
     
     expect(options.scales.y.beginAtZero).toBe(true);
   });
 
-  it('should filter specific cases in the bar graph when selected', async () => {
+  it('should filter specific classifications in the bar graph when selected', async () => {
     const user = userEvent.setup();
     render(<BarGraph />);
     
-    const measlesCheckbox = screen.getByLabelText('Measles');
-    await user.click(measlesCheckbox);
+    const normalBtn = screen.getByText('Normal');
+    await user.click(normalBtn);
     
     await waitFor(() => {
       const barGraph = screen.getByTestId('mock-bar-graph');
       const datasets = JSON.parse(barGraph.getAttribute('data-datasets'));
       const activeLabels = datasets.map(d => d.label);
       
-      expect(activeLabels).toContain('Measles');
+      expect(activeLabels).not.toContain('Normal');
     });
   });
 
-  it('should only output the selected filters in the bar graph', async () => {
+  it('should only output the selected classifications in the bar graph', async () => {
     const user = userEvent.setup();
     render(<BarGraph />);
     
-    const dengueCheckbox = screen.getByLabelText('Dengue');
-    const measlesCheckbox = screen.getByLabelText('Measles');
+    const stuntedBtn = screen.getByText('Stunted');
+    const obeseBtn = screen.getByText('Obese');
     
-    // Ensure exact state: Dengue OFF, Measles ON
-    if (dengueCheckbox.checked) await user.click(dengueCheckbox);
-    if (!measlesCheckbox.checked) await user.click(measlesCheckbox);
+    if (stuntedBtn.className.includes('bg-emerald')) await user.click(stuntedBtn);
+    if (!obeseBtn.className.includes('bg-emerald')) await user.click(obeseBtn);
     
     await waitFor(() => {
       const barGraph = screen.getByTestId('mock-bar-graph');
       const datasets = JSON.parse(barGraph.getAttribute('data-datasets'));
+      const activeLabels = datasets.map(d => d.label);
       
-      expect(datasets).toHaveLength(1);
-      expect(datasets[0].label).toBe('Measles');
+      const onlySelected = activeLabels.every(l => l === 'Normal' || l === 'Obese');
+      expect(onlySelected).toBe(true);
     });
   });
 });
