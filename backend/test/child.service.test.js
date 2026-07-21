@@ -7,7 +7,7 @@ vi.mock('../src/models/child.model.js', () => ({
     getAllChildrenRecords: vi.fn(),
     createChildRecord: vi.fn(),
     getFilteredChildren: vi.fn(),
-    getMonthlyReportData: vi.fn() 
+    getMonthlyReportData: vi.fn() // added mock for new task
   }
 }));
 
@@ -185,6 +185,7 @@ describe('Child Service', () => {
     });
   });
 
+  // --- DAY 1 TASK: PR Acceptance Criteria Tests ---
   describe('generateMonthlyReport', () => {
     it('should accurately calculate Total Registered, Normal, Stunted, and Obese counts', async () => {
       const mockMonthlyRecords = [
@@ -205,7 +206,7 @@ describe('Child Service', () => {
         stunted: 1,
         obese: 1
       });
-      expect(report.records).toEqual(mockMonthlyRecords);
+      expect(report.records).toEqual(mockMonthlyRecords); // Should fetch the fully aggregated dataset
     });
 
     it('should throw an error if month or year are not provided', async () => {

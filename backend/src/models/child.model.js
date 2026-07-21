@@ -63,13 +63,13 @@ export default {
     return child ? (child.history || []) : [];
   },
 
-
+  // --- DAY 1 TASK: Build Database Aggregation Pipelines ---
   async getMonthlyReportData(month, year) {
     const records = await this.getAllChildrenRecords();
     
-
+    // Simulating a DB aggregation pipeline that filters by date
     return records.filter(child => {
-      if (!child.createdAt) return true;
+      if (!child.createdAt) return true; // Fallback to include mock records without dates
       const recordDate = new Date(child.createdAt);
       return (recordDate.getMonth() + 1) === Number(month) && recordDate.getFullYear() === Number(year);
     });
