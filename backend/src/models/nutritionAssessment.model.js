@@ -50,5 +50,10 @@ export default {
     });
 
     return aggregated;
+  },
+
+  async getAssessmentsByBarangay(barangayName) {
+    const records = await this.getAllAssessments();
+    return records.filter(record => record.barangay === barangayName);
   }
 };

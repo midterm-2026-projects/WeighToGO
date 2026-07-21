@@ -169,5 +169,42 @@ export default {
     }
 
     return mapData;
+  },
+
+  async fetchBarangayHealthInsights(barangayName) {
+    if (!barangayName) {
+      throw new Error("Barangay identifier is required");
+    }
+
+    const records = await assessmentModel.getAssessmentsByBarangay(barangayName);
+
+    if (!records || records.length === 0) {
+      return {
+        barangay: barangayName,
+        total: 0,
+        classifications: { healthy: 0, deficit: 0, excess: 0 },
+        statuses: {}
+      };
+    }
+
+    const insights = {
+      barangay: barangayName,
+      total: records.length,
+      classifications: { healthy: 0, deficit: 0, excess: 0 },
+      statuses: {}
+    };
+
+    records.forEach(record => {
+      if (insights.classifications[record.classification] !== undefined) {
+        insights.classifications[record.classification] += 1;
+      }
+
+      if (!insights.statuses[record.status]) {
+        insights.statuses[record.status] = 0;
+      }
+      insights.statuses[record.status] += 1;
+    });
+
+    return insights;
   }
 };
