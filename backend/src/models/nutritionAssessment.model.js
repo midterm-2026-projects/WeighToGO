@@ -22,5 +22,38 @@ export default {
       { id: 19, month: 'Dec', status: 'Normal (N)', classification: 'healthy', barangay: 'Barangay 3' },
       { id: 20, month: 'Dec', status: 'Mod. Wasted (MW)', classification: 'deficit', barangay: 'Barangay 2' }
     ];
+  },
+
+  async getBarangayCoordinates() {
+    return {
+      'Barangay 1': { lat: 13.9405, lng: 120.7323 },
+      'Barangay 2': { lat: 13.9425, lng: 120.7345 },
+      'Barangay 3': { lat: 13.9445, lng: 120.7367 }
+    };
+  },
+
+  async getNutritionalRiskAggregations() {
+    const records = await this.getAllAssessments();
+    const aggregated = {};
+
+    records.forEach(record => {
+      if (!aggregated[record.barangay]) {
+        aggregated[record.barangay] = {
+          total: 0,
+          healthy: 0,
+          deficit: 0,
+          excess: 0
+        };
+      }
+      aggregated[record.barangay].total += 1;
+      aggregated[record.barangay][record.classification] += 1;
+    });
+
+    return aggregated;
+  },
+
+  async getAssessmentsByBarangay(barangayName) {
+    const records = await this.getAllAssessments();
+    return records.filter(record => record.barangay === barangayName);
   }
 };
