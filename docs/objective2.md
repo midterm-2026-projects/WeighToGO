@@ -108,14 +108,14 @@ Each working week is structured around *exactly 2 working days* dedicated to spe
 
 #### Day 2: Health Reports Database Integration
 * *Sub-Tasks:*
-    * Test the Login Routing Flow.
-    * Verify Protected Route Security.
+    * Integrate session token verification with the health reports database aggregation queries.
+    * Implement role-based data access controls.
 * *Deliverables:*
-    * Documented authentication flow integration test report.
-    * Security validation log confirming unauthorized API calls failed.
+    * Documented integration test report verifying authorized retrieval of localized health report datasets.
+    * Database security verification log confirming that unauthorized query requests to the health data endpoints are successfully blocked.
 * *Instructor Acceptance Criteria (PR Check):*
-    * Providing valid database credentials successfully grants a token and redirects the user directly to the Masterlist view.
-    * The system blocks attempts to access the Masterlist or Health Reports without a valid token and redirects the user to the landing page.
+    * Providing a valid session token successfully queries the database and aggregates the health metrics matrix matching the user's role/scope.
+    * The database layer blocks query attempts to the health reports data if the session token is missing, expired, or lacks appropriate role access.
 
 ---
 

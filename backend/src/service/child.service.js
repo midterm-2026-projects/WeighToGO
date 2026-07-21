@@ -101,22 +101,69 @@ export default {
     return newRecord;
   },
 
-  // -- merged from your filter controller --
-async filterChildMasterlist(barangay, ageGroup, status) {
-  if (barangay && barangay !== 'All' && !BARANGAY_OPTIONS.includes(barangay)) {
-    throw new Error('Invalid Barangay selection');
-  }
+  async filterChildMasterlist(barangay, ageGroup, status) {
+    if (barangay && barangay !== 'All' && !BARANGAY_OPTIONS.includes(barangay)) {
+      throw new Error('Invalid Barangay selection');
+    }
 
-  if (ageGroup && ageGroup !== 'All' && !AGE_OPTIONS.includes(ageGroup)) {
-    throw new Error('Invalid Nutritional Age Group selection');
-  }
+    if (ageGroup && ageGroup !== 'All' && !AGE_OPTIONS.includes(ageGroup)) {
+      throw new Error('Invalid Nutritional Age Group selection');
+    }
 
-  if (status && status !== 'All' && !STATUS_OPTIONS.includes(status)) {
-    throw new Error('Invalid Nutritional Status selection');
-  }
+    if (status && status !== 'All' && !STATUS_OPTIONS.includes(status)) {
+      throw new Error('Invalid Nutritional Status selection');
+    }
 
-  const classification = status && status !== 'All' ? STATUS_TO_CLASSIFICATION[status] : undefined;
+    const classification = status && status !== 'All' ? STATUS_TO_CLASSIFICATION[status] : undefined;
 
-  return await childModel.filterChildMasterlist(barangay, ageGroup, classification);
+    return await childModel.filterChildMasterlist(barangay, ageGroup, classification);
+  },
+
+  async generateMonthlyReport(month, year) {
+    if (!month || !year) {
+      throw new Error('Month and year are required to generate the report');
+    }
+
+    const records = await childModel.getMonthlyReportData(month, year);
+
+    const summary = records.reduce((acc, child) => {
+      acc.totalRegistered += 1;
+
+      const hfa = child.hfaStatus?.toLowerCase() || '';
+      const wfhl = child.wfhlStatus?.toLowerCase() || '';
+      
+      if (child.classification === 'healthy' || (child.wfaStatus?.toLowerCase() === 'normal' && hfa === 'normal')) {
+        acc.normal += 1;
+      }
+      
+      if (hfa.includes('stunted')) {
+        acc.stunted += 1;
+      }
+      
+      if (wfhl.includes('overweight') || wfhl.includes('obese')) {
+        acc.obese += 1;
+      }
+
+      return acc;
+    }, { totalRegistered: 0, normal: 0, stunted: 0, obese: 0 });
+
+    return {
+      summary,
+      records
+    };
+  },
+
+  async submitChildAssessment(childId, assessmentData) {
+    if (!childId || !assessmentData.weight || !assessmentData.height) {
+      throw new Error('Child ID, weight, and height are required to submit an assessment');
+    }
+
+    const updatedRecord = await childModel.updateChildAssessment(childId, assessmentData);
+    
+    if (!updatedRecord) {
+      throw new Error('Child record not found or assessment update failed');
+    }
+
+    return updatedRecord;
   }
 };
