@@ -108,7 +108,7 @@
   * The Monthly Report table accurately listing all assessed children and their derived statuses directly from your backend logic.
 * *PR Acceptance Criteria:*
   * Database aggregation pipelines accurately calculate Total Registered, Normal, Stunted, and Obese counts for the requested month.
-  * The detailed Monthly Report table correctly fetches and displays the fully aggregated dataset for the selected month via API request.
+  * The detailed Monthly Report table correctly fetches and displays the fully aggregated dataset for the selected month.
 
 #### Day 2: Masterlist E2E Testing
 * *Sub-Tasks:*
