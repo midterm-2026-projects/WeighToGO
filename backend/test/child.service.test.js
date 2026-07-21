@@ -7,7 +7,8 @@ vi.mock('../src/models/child.model.js', () => ({
     getAllChildrenRecords: vi.fn(),
     createChildRecord: vi.fn(),
     getFilteredChildren: vi.fn(),
-    getMonthlyReportData: vi.fn() // added mock for new task
+    getMonthlyReportData: vi.fn(),
+    updateChildAssessment: vi.fn()
   }
 }));
 
@@ -185,7 +186,6 @@ describe('Child Service', () => {
     });
   });
 
-
   describe('generateMonthlyReport', () => {
     it('should accurately calculate Total Registered, Normal, Stunted, and Obese counts', async () => {
       const mockMonthlyRecords = [
@@ -206,12 +206,76 @@ describe('Child Service', () => {
         stunted: 1,
         obese: 1
       });
-      expect(report.records).toEqual(mockMonthlyRecords); 
+      expect(report.records).toEqual(mockMonthlyRecords);
     });
 
     it('should throw an error if month or year are not provided', async () => {
       await expect(childService.generateMonthlyReport(null, 2026)).rejects.toThrow('Month and year are required to generate the report');
       await expect(childService.generateMonthlyReport(7, null)).rejects.toThrow('Month and year are required to generate the report');
     });
+  });
+
+  describe('Day 2: Masterlist Testing (User Journeys)', () => {
+    
+    it('should successfully execute clicking "Add New Child", filling the form, submitting, and verifying the persisted record appears on the Masterlist', async () => {
+      const formPayload = {
+        name: 'Maria Clara',
+        barangay: 'Brgy. Santol',
+        purok: 'Purok 1',
+        parents: 'Kapitan Tiago',
+        age: 8
+      };
+      
+      const persistedRecord = { id: 101, ...formPayload, classification: 'healthy' };
+      
+      childModel.createChildRecord.mockResolvedValue(persistedRecord);
+      
+      const newlyRegisteredChild = await childService.registerChild(formPayload);
+      
+      expect(childModel.createChildRecord).toHaveBeenCalledWith(formPayload);
+      expect(newlyRegisteredChild).toEqual(persistedRecord);
+
+      const updatedMasterlistDB = [
+        { id: 1, name: 'Juan Dela Cruz' },
+        persistedRecord 
+      ];
+      
+      childModel.getAllChildrenRecords.mockResolvedValue(updatedMasterlistDB);
+      
+      const masterlistData = await childService.fetchMasterlist();
+      
+      expect(childModel.getAllChildrenRecords).toHaveBeenCalled();
+      expect(masterlistData).toContainEqual(persistedRecord);
+    });
+
+    it('should verify the flow of searching a child, opening the manage modal, and successfully submitting a new weight/height entry', async () => {
+      const targetChildId = 2;
+      const newAssessmentPayload = {
+        weight: 12.5,
+        height: 85.0
+      };
+
+      const updatedChildProfile = {
+        id: targetChildId,
+        name: 'Anna Reyes',
+        weight: 12.5,
+        height: 85.0,
+        history: [
+          { date: new Date().toISOString().split('T')[0], weight: 12.5, height: 85.0 }
+        ]
+      };
+
+      childModel.updateChildAssessment.mockResolvedValue(updatedChildProfile);
+
+      const result = await childService.submitChildAssessment(targetChildId, newAssessmentPayload);
+
+      expect(childModel.updateChildAssessment).toHaveBeenCalledWith(targetChildId, newAssessmentPayload);
+      
+      expect(result.id).toBe(targetChildId);
+      expect(result.weight).toBe(12.5);
+      expect(result.height).toBe(85.0);
+      expect(result.history).toHaveLength(1);
+    });
+
   });
 });
