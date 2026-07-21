@@ -119,7 +119,6 @@ export default {
     return await childModel.filterChildMasterlist(barangay, ageGroup, classification);
   },
 
-  // --- DAY 1 TASK: Connect Monthly Report Table Endpoint ---
   async generateMonthlyReport(month, year) {
     if (!month || !year) {
       throw new Error('Month and year are required to generate the report');
@@ -127,7 +126,6 @@ export default {
 
     const records = await childModel.getMonthlyReportData(month, year);
 
-    // Calculate Total Registered, Normal, Stunted, and Obese counts dynamically
     const summary = records.reduce((acc, child) => {
       acc.totalRegistered += 1;
 
