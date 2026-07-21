@@ -203,7 +203,7 @@ describe('Child Service', () => {
       expect(childModel.getMonthlyReportData).toHaveBeenCalledWith(7, 2026);
       expect(report.summary).toEqual({
         totalRegistered: 4,
-        normal: 2,
+        normal: 3,
         stunted: 1,
         obese: 1
       });

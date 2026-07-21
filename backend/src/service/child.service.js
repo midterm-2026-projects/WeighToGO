@@ -1,4 +1,5 @@
-const BARANGAY_OPTIONS = [
+import childModel from '../models/child.model.js';
+ const BARANGAY_OPTIONS = [
   "Brgy. Caloocan", "Brgy. Lanatan", "Brgy. Uno", "Brgy. Ermita",
   "Brgy. Gumamela", "Brgy. Navotas", "Brgy. Palikpikan", "Brgy. Sampaga",
   "Brgy. Santol", "Brgy. Dilao", "Brgy. Dalig", "Brgy. Langgangan",
