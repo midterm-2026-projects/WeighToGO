@@ -4,7 +4,9 @@ import nutritionAssessmentModel from '../src/models/nutritionAssessment.model.js
 
 vi.mock('../src/models/nutritionAssessment.model.js', () => ({
   default: {
-    getAllAssessments: vi.fn()
+    getAllAssessments: vi.fn(),
+    getBarangayCoordinates: vi.fn(),
+    getNutritionalRiskAggregations: vi.fn()
   }
 }));
 
@@ -121,6 +123,42 @@ describe('Nutrition Assessment Service', () => {
       nutritionAssessmentModel.getAllAssessments.mockRejectedValue(new Error('Connection Failed'));
 
       await expect(nutritionAssessmentService.fetchBarGraphData()).rejects.toThrow('Connection Failed');
+    });
+  });
+
+  describe('Map Data - fetchMapData', () => {
+    it('should combine coordinates and aggregated data to calculate correct risk levels and marker colors', async () => {
+      const mockAggregations = {
+        'Barangay 1': { total: 10, healthy: 9, deficit: 1, excess: 0 },
+        'Barangay 2': { total: 10, healthy: 7, deficit: 3, excess: 0 },
+        'Barangay 3': { total: 10, healthy: 5, deficit: 3, excess: 2 }
+      };
+      
+      const mockCoords = {
+        'Barangay 1': { lat: 13.9405, lng: 120.7323 },
+        'Barangay 2': { lat: 13.9425, lng: 120.7345 },
+        'Barangay 3': { lat: 13.9445, lng: 120.7367 }
+      };
+
+      nutritionAssessmentModel.getNutritionalRiskAggregations.mockResolvedValue(mockAggregations);
+      nutritionAssessmentModel.getBarangayCoordinates.mockResolvedValue(mockCoords);
+
+      const result = await nutritionAssessmentService.fetchMapData();
+
+      expect(result).toHaveLength(3);
+      
+      const b1 = result.find(r => r.barangay === 'Barangay 1');
+      expect(b1.riskLevel).toBe('Low');
+      expect(b1.markerColor).toBe('green');
+      expect(b1.lat).toBe(13.9405);
+
+      const b2 = result.find(r => r.barangay === 'Barangay 2');
+      expect(b2.riskLevel).toBe('Medium');
+      expect(b2.markerColor).toBe('orange');
+
+      const b3 = result.find(r => r.barangay === 'Barangay 3');
+      expect(b3.riskLevel).toBe('High');
+      expect(b3.markerColor).toBe('red');
     });
   });
 });

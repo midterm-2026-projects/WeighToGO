@@ -136,4 +136,38 @@ export default {
       series: series,
     };
   },
+
+  async fetchMapData() {
+    const coords = await assessmentModel.getBarangayCoordinates();
+    const aggregations = await assessmentModel.getNutritionalRiskAggregations();
+
+    const mapData = [];
+
+    for (const [barangay, data] of Object.entries(aggregations)) {
+      const coordinate = coords[barangay] || { lat: 0, lng: 0 };
+      const riskRatio = (data.deficit + data.excess) / data.total;
+
+      let riskLevel = 'Low';
+      let markerColor = 'green';
+
+      if (riskRatio >= 0.4) {
+        riskLevel = 'High';
+        markerColor = 'red';
+      } else if (riskRatio >= 0.2) {
+        riskLevel = 'Medium';
+        markerColor = 'orange';
+      }
+
+      mapData.push({
+        barangay,
+        lat: coordinate.lat,
+        lng: coordinate.lng,
+        metrics: data,
+        riskLevel,
+        markerColor
+      });
+    }
+
+    return mapData;
+  }
 };
