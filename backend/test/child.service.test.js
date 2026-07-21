@@ -8,7 +8,8 @@ vi.mock('../src/models/child.model.js', () => ({
     createChildRecord: vi.fn(),
     getFilteredChildren: vi.fn(),
     getMonthlyReportData: vi.fn(),
-    updateChildAssessment: vi.fn()
+    updateChildAssessment: vi.fn(),
+    getChildById: vi.fn()
   }
 }));
 
@@ -215,7 +216,7 @@ describe('Child Service', () => {
     });
   });
 
-  describe('Day 2: Masterlist Testing (User Journeys)', () => {
+  describe('Masterlist Testing (User Journeys)', () => {
     
     it('should successfully execute clicking "Add New Child", filling the form, submitting, and verifying the persisted record appears on the Masterlist', async () => {
       const formPayload = {
@@ -275,6 +276,56 @@ describe('Child Service', () => {
       expect(result.weight).toBe(12.5);
       expect(result.height).toBe(85.0);
       expect(result.history).toHaveLength(1);
+    });
+
+  });
+
+  describe('Component Integration Testing', () => {
+    
+    it('should fetch a specific child record to populate the Dynamic Profile Modal', async () => {
+      const targetId = 3;
+      const mockChildProfile = {
+        id: targetId,
+        name: 'Mark Santos',
+        classification: 'deficit',
+        wfaStatus: 'Severe Underweight'
+      };
+
+      childModel.getChildById.mockResolvedValue(mockChildProfile);
+
+      const profile = await childService.fetchChildProfile(targetId);
+
+      expect(childModel.getChildById).toHaveBeenCalledWith(targetId);
+      expect(profile).toEqual(mockChildProfile);
+    });
+
+    it('should throw an error if attempting to fetch a profile without an ID or if profile is not found', async () => {
+      await expect(childService.fetchChildProfile(null)).rejects.toThrow('Child ID is required to fetch profile');
+
+      childModel.getChildById.mockResolvedValue(null);
+      await expect(childService.fetchChildProfile(999)).rejects.toThrow('Child profile not found');
+    });
+
+    it('should sync and accurately reflect simulated database updates instantly in frontend matrix tallies', async () => {
+      const initialDBState = [
+        { id: 1, classification: 'healthy' },
+        { id: 2, classification: 'healthy' }
+      ];
+      childModel.getAllChildrenRecords.mockResolvedValue(initialDBState);
+      
+      const initialTotals = await childService.calculateNutritionalTotals();
+      expect(initialTotals.healthy).toBe(2);
+      expect(initialTotals.deficit).toBe(0);
+
+      const updatedDBState = [
+        { id: 1, classification: 'healthy' },
+        { id: 2, classification: 'deficit' } 
+      ];
+      childModel.getAllChildrenRecords.mockResolvedValue(updatedDBState);
+
+      const updatedTotals = await childService.calculateNutritionalTotals();
+      expect(updatedTotals.healthy).toBe(1);
+      expect(updatedTotals.deficit).toBe(1);
     });
 
   });

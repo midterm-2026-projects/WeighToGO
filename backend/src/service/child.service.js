@@ -1,6 +1,5 @@
 import childModel from '../models/child.model.js';
-
-const BARANGAY_OPTIONS = [
+ const BARANGAY_OPTIONS = [
   "Brgy. Caloocan", "Brgy. Lanatan", "Brgy. Uno", "Brgy. Ermita",
   "Brgy. Gumamela", "Brgy. Navotas", "Brgy. Palikpikan", "Brgy. Sampaga",
   "Brgy. Santol", "Brgy. Dilao", "Brgy. Dalig", "Brgy. Langgangan",
@@ -165,5 +164,19 @@ export default {
     }
 
     return updatedRecord;
+  },
+
+  async fetchChildProfile(id) {
+    if (!id) {
+      throw new Error('Child ID is required to fetch profile');
+    }
+
+    const profile = await childModel.getChildById(id);
+
+    if (!profile) {
+      throw new Error('Child profile not found');
+    }
+
+    return profile;
   }
 };
