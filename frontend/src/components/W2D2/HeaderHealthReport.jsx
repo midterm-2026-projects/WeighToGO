@@ -1,4 +1,4 @@
-export default function HeaderHealthReport({ selectedBarangay, setSelectedBarangay }) {
+export default function HeaderHealthReport({ selectedBarangay, setSelectedBarangay, barangays = [] }) {
   const handlePrint = () => {
     window.print();
   };
@@ -15,10 +15,9 @@ export default function HeaderHealthReport({ selectedBarangay, setSelectedBarang
             onChange={(e) => setSelectedBarangay(e.target.value)}
             className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
           >
-            <option value="All Barangays">All Barangays</option>
-            <option value="Brgy. Caloocan">Brgy. Caloocan</option>
-            <option value="Brgy. Lanatan">Brgy. Lanatan</option>
-            <option value="Brgy. Dilao">Brgy. Dilao</option>
+            {barangays.map(b => (
+              <option key={b.value} value={b.value}>{b.label}</option>
+            ))}
           </select>
           <button
             onClick={handlePrint}
