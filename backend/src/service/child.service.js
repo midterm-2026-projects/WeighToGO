@@ -119,45 +119,37 @@ export default {
     return await childModel.filterChildMasterlist(barangay, ageGroup, classification);
   },
 
-  async fetchFilteredMasterlist(queryParams = {}) {
-    const records = await childModel.getAllChildrenRecords();
-
-    if (!records) {
-      throw new Error('Failed to retrieve filtered masterlist from the database');
+  async generateMonthlyReport(month, year) {
+    if (!month || !year) {
+      throw new Error('Month and year are required to generate the report');
     }
 
-    const { search, barangay, ageGroup } = queryParams;
+    const records = await childModel.getMonthlyReportData(month, year);
 
-    return records.filter(child => {
-      if (search && !child.name.toLowerCase().includes(search.toLowerCase())) {
-        return false;
+    const summary = records.reduce((acc, child) => {
+      acc.totalRegistered += 1;
+
+      const hfa = child.hfaStatus?.toLowerCase() || '';
+      const wfhl = child.wfhlStatus?.toLowerCase() || '';
+      
+      if (child.classification === 'healthy' || (child.wfaStatus?.toLowerCase() === 'normal' && hfa === 'normal')) {
+        acc.normal += 1;
       }
-      if (barangay && barangay !== 'all' && child.barangay !== barangay) {
-        return false;
+      
+      if (hfa.includes('stunted')) {
+        acc.stunted += 1;
       }
-      if (ageGroup && ageGroup !== 'all' && child.ageGroup !== ageGroup) {
-        return false;
+      
+      if (wfhl.includes('overweight') || wfhl.includes('obese')) {
+        acc.obese += 1;
       }
-      return true;
-    });
-  },
 
-  async updateMonthlyAssessment(childId, payload) {
-    if (!childId) throw new Error('Child ID is required for monthly updates');
-    if (payload.height === undefined || payload.weight === undefined) {
-      throw new Error('Height and weight are required parameters');
-    }
+      return acc;
+    }, { totalRegistered: 0, normal: 0, stunted: 0, obese: 0 });
 
-    const updatedRecord = await childModel.updateChildAssessment(childId, payload);
-    if (!updatedRecord) {
-      throw new Error('Child record not found or update failed');
-    }
-
-    return updatedRecord;
-  },
-
-  async fetchCheckupHistory(childId) {
-    if (!childId) throw new Error('Child ID is required to fetch history');
-    return await childModel.getChildAssessmentHistory(childId);
+    return {
+      summary,     
+      records      
+    };
   }
 };

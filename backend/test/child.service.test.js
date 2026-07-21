@@ -2,20 +2,14 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import childService from '../src/service/child.service.js';
 import childModel from '../src/models/child.model.js';
 
-vi.mock('../src/models/child.model.js', () => {
-  const mockModel = {
+vi.mock('../src/models/child.model.js', () => ({
+  default: {
     getAllChildrenRecords: vi.fn(),
     createChildRecord: vi.fn(),
     getFilteredChildren: vi.fn(),
-    updateChildAssessment: vi.fn(),
-    getChildAssessmentHistory: vi.fn()
-  };
-  
-  return {
-    default: mockModel,
-    ...mockModel
-  };
-});
+    getMonthlyReportData: vi.fn() 
+  }
+}));
 
 describe('Child Service', () => {
   beforeEach(() => {
@@ -191,68 +185,32 @@ describe('Child Service', () => {
     });
   });
 
-  describe('fetchFilteredMasterlist', () => {
-    const sampleRecords = [
-      { id: 1, name: 'Juan Dela Cruz', barangay: 'Barangay 1', ageGroup: '12-59 Months' },
-      { id: 2, name: 'Anna Reyes', barangay: 'Barangay 2', ageGroup: '6-11 Months' },
-      { id: 3, name: 'Mark Santos', barangay: 'Barangay 1', ageGroup: '12-59 Months' }
-    ];
-
-    it('should narrow down records based on search input keywords', async () => {
-      childModel.getAllChildrenRecords.mockResolvedValue(sampleRecords);
-
-      const result = await childService.fetchFilteredMasterlist({ search: 'anna' });
-      expect(result).toEqual([sampleRecords[1]]);
-    });
-
-    it('should filter datasets using dropdown criteria options', async () => {
-      childModel.getAllChildrenRecords.mockResolvedValue(sampleRecords);
-
-      const result = await childService.fetchFilteredMasterlist({ barangay: 'Barangay 1', ageGroup: '12-59 Months' });
-      expect(result).toEqual([sampleRecords[0], sampleRecords[2]]);
-    });
-
-    it('should return all available records if parameters are empty or set to all', async () => {
-      childModel.getAllChildrenRecords.mockResolvedValue(sampleRecords);
-
-      const result = await childService.fetchFilteredMasterlist({ barangay: 'all', ageGroup: 'all' });
-      expect(result).toEqual(sampleRecords);
-    });
-  });
-
-  describe('updateMonthlyAssessment', () => {
-    it('should successfully update metrics and add historical entries', async () => {
-      const mockPayload = { height: 95, weight: 14, wfaStatus: 'Normal', hfaStatus: 'Normal', classification: 'healthy' };
-      const expectedRecord = { id: 1, ...mockPayload, history: [mockPayload] };
-
-      childModel.updateChildAssessment.mockResolvedValue(expectedRecord);
-
-      const result = await childService.updateMonthlyAssessment(1, mockPayload);
-
-      expect(childModel.updateChildAssessment).toHaveBeenCalledWith(1, mockPayload);
-      expect(result).toEqual(expectedRecord);
-    });
-
-    it('should throw an error if if height or weight is not provided', async () => {
-      await expect(childService.updateMonthlyAssessment(1, { height: 90 }))
-        .rejects.toThrow('Height and weight are required parameters');
-    });
-  });
-
-  describe('fetchCheckupHistory', () => {
-    it('should only retrieve the history of the requested child', async () => {
-      const mockHistory = [
-        { date: '2026-01-10', height: 92, weight: 13.5, wfaStatus: 'Normal' },
-        { date: '2026-02-12', height: 93.5, weight: 14.1, wfaStatus: 'Normal' }
+  describe('generateMonthlyReport', () => {
+    it('should accurately calculate Total Registered, Normal, Stunted, and Obese counts', async () => {
+      const mockMonthlyRecords = [
+        { id: 1, classification: 'healthy', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal' },
+        { id: 2, classification: 'deficit', wfaStatus: 'Underweight', hfaStatus: 'Severe Stunted', wfhlStatus: 'Normal' },
+        { id: 3, classification: 'excess', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Overweight' },
+        { id: 4, classification: 'healthy', wfaStatus: 'Normal', hfaStatus: 'Normal', wfhlStatus: 'Normal' }
       ];
 
-      childModel.getChildAssessmentHistory.mockResolvedValue(mockHistory);
+      childModel.getMonthlyReportData.mockResolvedValue(mockMonthlyRecords);
 
-      const result = await childService.fetchCheckupHistory(1);
+      const report = await childService.generateMonthlyReport(7, 2026);
 
-      expect(childModel.getChildAssessmentHistory).toHaveBeenCalledWith(1);
-      expect(result).toHaveLength(2);
-      expect(result).toEqual(mockHistory);
+      expect(childModel.getMonthlyReportData).toHaveBeenCalledWith(7, 2026);
+      expect(report.summary).toEqual({
+        totalRegistered: 4,
+        normal: 3,
+        stunted: 1,
+        obese: 1
+      });
+      expect(report.records).toEqual(mockMonthlyRecords);
+    });
+
+    it('should throw an error if month or year are not provided', async () => {
+      await expect(childService.generateMonthlyReport(null, 2026)).rejects.toThrow('Month and year are required to generate the report');
+      await expect(childService.generateMonthlyReport(7, null)).rejects.toThrow('Month and year are required to generate the report');
     });
   });
 });
