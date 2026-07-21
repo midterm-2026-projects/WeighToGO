@@ -6,9 +6,9 @@ describe("TableHealthReport Tests", () => {
   it("should display the group categories headers in the table", () => {
     render(<TableHealthReport />);
     
-    expect(screen.getByText("Weight for Age (WFA)")).toBeInTheDocument();
-    expect(screen.getByText("Height for Age (HFA)")).toBeInTheDocument();
-    expect(screen.getByText("Weight for L/H (WFL/H)")).toBeInTheDocument();
+    expect(screen.getByText("Weight-for-Age (WFA)")).toBeInTheDocument();
+    expect(screen.getByText("Height-for-Age (HFA)")).toBeInTheDocument();
+    expect(screen.getByText("Weight-for-Length/Height (WFH/L)")).toBeInTheDocument();
   });
 
   it("should show short letters like SUW and OB in the column cells", () => {

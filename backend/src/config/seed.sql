@@ -1,0 +1,73 @@
+USE weightogo_db;
+
+INSERT INTO users (role, email, password, assigned_barangay) VALUES
+('Administrator (Admin)', 'user@health.gov.ph', 'Balayan2026!', NULL),
+('Barangay Nutrition Scholar', 'bns@health.gov.ph', 'BNSBalayan2026!', 'Brgy. Navotas');
+
+INSERT INTO barangays (name, lat, lng) VALUES
+('Barangay 1', 13.9405, 120.7323),
+('Barangay 2', 13.9425, 120.7345),
+('Barangay 3', 13.9445, 120.7367),
+('Brgy. Caloocan', 13.9410, 120.7300),
+('Brgy. Lanatan', 13.9430, 120.7310),
+('Brgy. Uno', 13.9440, 120.7320),
+('Brgy. Ermita', 13.9450, 120.7330),
+('Brgy. Gumamela', 13.9460, 120.7340),
+('Brgy. Navotas', 13.9470, 120.7350),
+('Brgy. Palikpikan', 13.9480, 120.7360),
+('Brgy. Sampaga', 13.9490, 120.7370),
+('Brgy. Santol', 13.9500, 120.7380),
+('Brgy. Dilao', 13.9510, 120.7390),
+('Brgy. Dalig', 13.9520, 120.7400),
+('Brgy. Langgangan', 13.9530, 120.7410),
+('Brgy. Canda', 13.9540, 120.7420),
+('Brgy. Pooc', 13.9550, 120.7430),
+('Brgy. Tanggoy', 13.9560, 120.7440);
+
+INSERT INTO children (name, barangay, purok, parent_name, age_months, gender, birthdate, wfa_status, hfa_status, wfhl_status, classification, weight, height) VALUES
+('GOMEZ, JAMES ANDREI', 'Brgy. Navotas', 'Purok 1', 'BAUTISTA, ANGELIQUE', 6, 'Male', '2026-01-01', 'Normal', 'Normal', 'Normal', 'normal', 7.5, 65.0),
+('CASTROMERO, RAYVIN', 'Brgy. Navotas', 'Purok 1', 'CASTROMERO, RICHARD', 12, 'Male', '2025-07-01', 'Normal', 'Normal', 'Normal', 'normal', 9.2, 72.0),
+('DELA CRUZ, JUAN', 'Brgy. Navotas', 'Purok 2', 'MARIA CRUZ', 10, 'Male', '2025-09-01', 'Normal', 'Normal', 'Normal', 'normal', 8.0, 68.0),
+('LANATAN, BABY', 'Brgy. Lanatan', 'Purok 4', 'ANA LANATAN', 20, 'Female', '2024-11-01', 'Underweight', 'Stunted', 'Wasted', 'stunted', 8.5, 75.0),
+('REYES, KYLE', 'Brgy. Navotas', 'Purok 1', 'TRISHIA REYES', 37, 'Male', '2023-04-01', 'Overweight', 'Normal', 'Overweight', 'obese', 18.0, 95.0),
+('SANTOS, MARIA', 'Barangay 1', 'Purok 2', 'PEDRO SANTOS', 15, 'Female', '2025-04-01', 'Normal', 'Normal', 'Normal', 'normal', 9.8, 76.0),
+('GARCIA, JOSE', 'Barangay 2', 'Purok 3', 'ANA GARCIA', 24, 'Male', '2024-07-01', 'Underweight', 'Stunted', 'Normal', 'stunted', 10.0, 80.0),
+('RUIZ, ANA', 'Barangay 3', 'Purok 1', 'LUIS RUIZ', 30, 'Female', '2024-01-01', 'Normal', 'Normal', 'Overweight', 'obese', 15.5, 88.0),
+('MENDOZA, CARL', 'Barangay 1', 'Purok 4', 'SOFIA MENDOZA', 8, 'Male', '2025-11-01', 'Normal', 'Normal', 'Normal', 'normal', 7.8, 66.0),
+('TORRES, LISA', 'Barangay 2', 'Purok 1', 'MIGUEL TORRES', 42, 'Female', '2023-01-01', 'Severe Underweight', 'Severe Stunted', 'Wasted', 'stunted', 11.0, 85.0),
+('HERNANDEZ, MARK', 'Barangay 3', 'Purok 2', 'JULIA HERNANDEZ', 18, 'Male', '2025-01-01', 'Overweight', 'Normal', 'Obese', 'obese', 14.0, 82.0),
+('RAMOS, SOPHIA', 'Brgy. Caloocan', 'Purok 3', 'ANDREW RAMOS', 5, 'Female', '2026-02-01', 'Normal', 'Normal', 'Normal', 'normal', 6.5, 60.0),
+('NGUYEN, ETHAN', 'Brgy. Ermita', 'Purok 1', 'NGUYEN, LINH', 28, 'Male', '2024-03-01', 'Underweight', 'Stunted', 'Normal', 'stunted', 10.5, 83.0),
+('PASCUAL, CHLOE', 'Brgy. Gumamela', 'Purok 2', 'PASCUAL, ROBERT', 36, 'Female', '2023-07-01', 'Normal', 'Normal', 'Overweight', 'obese', 16.0, 92.0),
+('MORALES, DANIEL', 'Barangay 1', 'Purok 1', 'MORALES, ANA', 14, 'Male', '2025-05-01', 'Normal', 'Normal', 'Normal', 'normal', 9.5, 74.0),
+('SANTIAGO, ISABELLA', 'Barangay 2', 'Purok 4', 'SANTIAGO, JOSE', 22, 'Female', '2024-09-01', 'Normal', 'Stunted', 'Normal', 'stunted', 10.2, 78.0),
+('CASTILLO, MATTHEW', 'Barangay 3', 'Purok 3', 'CASTILLO, MARIA', 48, 'Male', '2022-07-01', 'Overweight', 'Normal', 'Obese', 'obese', 20.0, 100.0),
+('DELA PEÑA, AVA', 'Brgy. Sampaga', 'Purok 1', 'DELA PEÑA, KARL', 11, 'Female', '2025-08-01', 'Normal', 'Normal', 'Normal', 'normal', 8.8, 70.0),
+('VILLANUEVA, NOAH', 'Brgy. Santol', 'Purok 2', 'VILLANUEVA, ROSE', 33, 'Male', '2023-10-01', 'Underweight', 'Normal', 'Wasted', 'stunted', 11.5, 87.0),
+('AGUILAR, ZOE', 'Brgy. Dalig', 'Purok 3', 'AGUILAR, PEDRO', 9, 'Female', '2025-10-01', 'Normal', 'Normal', 'Normal', 'normal', 7.9, 67.0);
+
+INSERT INTO assessments (child_id, month, year, weight, height, wfa_status, hfa_status, wfhl_status, classification, assessed_by) VALUES
+(1, 'Jan', 2026, 7.5, 65.0, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(2, 'Jan', 2026, 9.0, 71.0, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(3, 'Feb', 2026, 8.2, 69.0, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(4, 'Feb', 2026, 8.3, 74.5, 'Underweight', 'Stunted', 'Wasted', 'stunted', 2),
+(5, 'Mar', 2026, 18.2, 95.5, 'Overweight', 'Normal', 'Overweight', 'obese', 2),
+(6, 'Mar', 2026, 9.9, 76.5, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(7, 'Apr', 2026, 9.8, 79.5, 'Underweight', 'Stunted', 'Normal', 'stunted', 2),
+(8, 'Apr', 2026, 15.8, 88.5, 'Normal', 'Normal', 'Overweight', 'obese', 2),
+(9, 'May', 2026, 7.9, 66.5, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(10, 'May', 2026, 10.8, 84.5, 'Severe Underweight', 'Severe Stunted', 'Wasted', 'stunted', 2),
+(11, 'Jun', 2026, 14.2, 82.5, 'Overweight', 'Normal', 'Obese', 'obese', 2),
+(12, 'Jun', 2026, 6.6, 60.5, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(13, 'Jul', 2026, 10.3, 82.8, 'Underweight', 'Stunted', 'Normal', 'stunted', 2),
+(14, 'Jul', 2026, 16.2, 92.5, 'Normal', 'Normal', 'Overweight', 'obese', 2),
+(15, 'Aug', 2026, 9.6, 74.5, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(16, 'Aug', 2026, 10.0, 77.5, 'Normal', 'Stunted', 'Normal', 'stunted', 2),
+(17, 'Sep', 2026, 20.2, 100.5, 'Overweight', 'Normal', 'Obese', 'obese', 2),
+(18, 'Sep', 2026, 8.9, 70.5, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(19, 'Oct', 2026, 11.3, 86.8, 'Underweight', 'Normal', 'Wasted', 'stunted', 2),
+(20, 'Oct', 2026, 8.0, 67.5, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(1, 'Nov', 2026, 7.8, 66.0, 'Normal', 'Normal', 'Normal', 'normal', 2),
+(4, 'Nov', 2026, 8.6, 75.0, 'Underweight', 'Stunted', 'Wasted', 'stunted', 2),
+(5, 'Dec', 2026, 18.5, 96.0, 'Overweight', 'Normal', 'Overweight', 'obese', 2),
+(8, 'Dec', 2026, 16.0, 89.0, 'Normal', 'Normal', 'Overweight', 'obese', 2);

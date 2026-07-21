@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,45 +10,96 @@ import {
   Legend
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
+import { api } from '../../services/api';
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
-const RAW_LINE_DATA = {
-  malnutrition: [120, 105, 90, 85, 110, 130, 0, 40, 50, 45, 60, 30],
-  obesity: [40, 45, 50, 48, 55, 60, 65, 70, 72, 68, 60, 50]
+const STATUS_COLORS = {
+  'Normal': '#10b981',
+  'Underweight': '#f59e0b',
+  'Severe Underweight': '#ef4444',
+  'Overweight': '#3b82f6',
+  'Obese': '#8b5cf6',
+  'Stunted': '#f97316',
+  'Severe Stunted': '#dc2626',
+  'Wasted': '#eab308',
+  'Severely Wasted': '#b91c1c',
 };
 
-export default function LineChart() {
-  const [lineFilters, setLineFilters] = useState(['malnutrition']);
+function autoYAxis(total, data) {
+  const all = data.flat();
+  const max = all.length ? Math.max(...all) : (total || 0);
 
-  const handleLineFilterChange = (e) => {
-    const value = e.target.value;
-    setLineFilters(prev => 
-      prev.includes(value) ? prev.filter(f => f !== value) : [...prev, value]
-    );
-  };
+  let stepSize;
+  let suggestedMax;
 
-  const lineChartData = {
+  if (max <= 10) {
+    stepSize = 1;
+    suggestedMax = max <= 5 ? 5 : 10;
+  } else if (max <= 20) {
+    stepSize = 5;
+    suggestedMax = Math.ceil(max / 5) * 5;
+  } else if (max <= 50) {
+    stepSize = 10;
+    suggestedMax = Math.ceil(max / 10) * 10;
+  } else if (max <= 100) {
+    stepSize = 20;
+    suggestedMax = Math.ceil(max / 20) * 20;
+  } else if (max <= 300) {
+    stepSize = 50;
+    suggestedMax = Math.ceil(max / 50) * 50;
+  } else if (max <= 500) {
+    stepSize = 100;
+    suggestedMax = Math.ceil(max / 100) * 100;
+  } else {
+    stepSize = Math.ceil(max / 100) * 50;
+    suggestedMax = Math.ceil(max / stepSize) * stepSize;
+  }
+
+  if (suggestedMax === max) suggestedMax += stepSize;
+
+  return { suggestedMax, stepSize };
+}
+
+export default function LineChart({ barangay = 'all', ageGroup = 'all', statusType = 'wfa', total = 0 }) {
+  const [chartData, setChartData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setLoading(true);
+    const params = { barangay, ageGroup, statusType };
+    api.analytics.trendline(params)
+      .then(res => {
+        const data = res.data;
+        if (data?.categories && data?.series) {
+          setChartData(data);
+        }
+      })
+      .catch(() => setChartData(null))
+      .finally(() => setLoading(false));
+  }, [barangay, ageGroup, statusType]);
+
+  const yAxis = useMemo(() => {
+    if (!chartData?.series?.length) return { suggestedMax: total || 5, stepSize: 1 };
+    return autoYAxis(total, chartData.series.map(s => s.data));
+  }, [chartData, total]);
+
+  const lineChartData = chartData ? {
+    labels: chartData.categories,
+    datasets: chartData.series.map(s => ({
+      label: s.name,
+      data: s.data,
+      borderColor: STATUS_COLORS[s.name] || s.color || '#6b7280',
+      backgroundColor: STATUS_COLORS[s.name] || s.color || '#6b7280',
+      tension: 0.3,
+      pointRadius: 4,
+      pointHoverRadius: 6,
+    }))
+  } : {
     labels: MONTHS,
-    datasets: Object.keys(RAW_LINE_DATA)
-      .filter(key => lineFilters.includes(key))
-      .map(key => ({
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-        data: RAW_LINE_DATA[key],
-        borderColor: key === 'malnutrition' ? '#ef4444' : '#3b82f6',
-        backgroundColor: key === 'malnutrition' ? '#ef4444' : '#3b82f6',
-        tension: 0.3
-      }))
+    datasets: []
   };
 
   const commonOptions = {
@@ -57,49 +108,44 @@ export default function LineChart() {
     scales: {
       y: {
         beginAtZero: true,
-        ticks: {
-          stepSize: 10
-        }
+        min: 0,
+        max: yAxis.suggestedMax,
+        ticks: { stepSize: yAxis.stepSize },
+        grid: { color: '#f3f4f6' }
+      },
+      x: {
+        grid: { display: false }
       }
     },
     plugins: {
-      tooltip: {
-        enabled: true,
-        intersect: false,
-        mode: 'index',
+      tooltip: { enabled: true, intersect: false, mode: 'index' },
+      legend: {
+        position: 'bottom',
+        labels: { usePointStyle: true, padding: 20 }
       }
     }
   };
 
+  const statusLabel = {
+    wfa: 'Weight-for-Age (WFA)',
+    hfa: 'Height-for-Age (HFA)',
+    wfhl: 'Weight-for-Length/Height (WFH/L)',
+  };
+
   return (
-    <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+    <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
       <div className="mb-4">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Monthly Nutritional Cases</h2>
-        <div className="flex gap-6">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input 
-              type="checkbox" 
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
-              value="malnutrition"
-              checked={lineFilters.includes('malnutrition')}
-              onChange={handleLineFilterChange}
-            />
-            <span className="text-sm font-medium text-gray-700">Malnutrition</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input 
-              type="checkbox" 
-              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500" 
-              value="obesity"
-              checked={lineFilters.includes('obesity')}
-              onChange={handleLineFilterChange}
-            />
-            <span className="text-sm font-medium text-gray-700">Obesity</span>
-          </label>
-        </div>
+        <h2 className="text-lg font-semibold text-gray-800">Monthly Cases Trend</h2>
+        <p className="text-sm text-gray-500 mt-1">
+          Cases per month — {statusLabel[statusType] || 'WFA'}
+        </p>
       </div>
-      <div className="h-100 w-full mt-6">
-        <Line data={lineChartData} options={commonOptions} />
+      <div className="h-80 w-full mt-4">
+        {loading ? (
+          <div className="flex items-center justify-center h-full text-gray-400">Loading chart...</div>
+        ) : (
+          <Line data={lineChartData} options={commonOptions} />
+        )}
       </div>
     </div>
   );

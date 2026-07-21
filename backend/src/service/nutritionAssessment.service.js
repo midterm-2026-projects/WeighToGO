@@ -1,74 +1,70 @@
 import assessmentModel from "../models/nutritionAssessment.model.js";
 
-const ALL_MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-const ALL_STATUSES = [
-  "Normal (N)",
-  "Overweight (OW)",
-  "Obese (OB)",
-  "Mod. Wasted (MW)",
-  "Sev. Wasted (SW)",
-];
-const ALL_CLASSIFICATIONS = ["healthy", "deficit", "excess"];
+const ALL_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const ALL_WFA_STATUSES = ["Normal", "Underweight", "Severe Underweight", "Overweight", "Obese"];
+const ALL_HFA_STATUSES = ["Normal", "Stunted", "Severe Stunted"];
+const ALL_WFHL_STATUSES = ["Normal", "Wasted", "Severely Wasted", "Overweight", "Obese"];
+const ALL_CLASSIFICATIONS = ["normal", "stunted", "obese"];
+
+const STATUS_TYPE_MAP = {
+  wfa: ALL_WFA_STATUSES,
+  hfa: ALL_HFA_STATUSES,
+  wfhl: ALL_WFHL_STATUSES
+};
+
+const STATUS_FIELD_MAP = {
+  wfa: 'wfa_status',
+  hfa: 'hfa_status',
+  wfhl: 'wfhl_status'
+};
+
+const STATUS_COLORS = {
+  wfa: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
+  hfa: ['#10b981', '#f59e0b', '#ef4444'],
+  wfhl: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6']
+};
 
 export default {
   async fetchTrendlineFilters() {
-    return ALL_STATUSES.map((status) => ({
-      label: status,
-      value: status,
-    }));
+    return [
+      { label: 'Weight-for-Age (WFA)', value: 'wfa' },
+      { label: 'Height-for-Age (HFA)', value: 'hfa' },
+      { label: 'Weight-for-Length/Height (WFH/L)', value: 'wfhl' }
+    ];
   },
 
   async fetchTrendlineData(filters = {}) {
-    const records = await assessmentModel.getAllAssessments();
+    const barangay = filters.barangay || 'all';
+    const ageGroup = filters.ageGroup || 'all';
+    const statusType = filters.statusType || 'wfa';
 
-    if (!records) {
-      throw new Error(
-        "Failed to retrieve nutrition assessments from the database",
-      );
-    }
+    const records = await assessmentModel.getFilteredAssessments(barangay, ageGroup);
+    if (!records) throw new Error("Failed to retrieve nutrition assessments");
 
-    const activeStatuses =
-      filters.statuses &&
-      Array.isArray(filters.statuses) &&
-      filters.statuses.length > 0
-        ? filters.statuses
-        : ALL_STATUSES;
+    const activeStatuses = STATUS_TYPE_MAP[statusType] || ALL_WFA_STATUSES;
+    const statusField = STATUS_FIELD_MAP[statusType] || 'wfa_status';
+    const colors = STATUS_COLORS[statusType] || STATUS_COLORS.wfa;
 
     const trendData = {};
-    ALL_MONTHS.forEach((month) => {
+    ALL_MONTHS.forEach(month => {
       trendData[month] = {};
-      activeStatuses.forEach((status) => {
-        trendData[month][status] = 0;
-      });
+      activeStatuses.forEach(status => { trendData[month][status] = 0; });
     });
 
-    records.forEach((record) => {
-      if (trendData[record.month] && activeStatuses.includes(record.status)) {
-        trendData[record.month][record.status] += 1;
+    records.forEach(record => {
+      const statusValue = record[statusField];
+      if (trendData[record.month] && activeStatuses.includes(statusValue)) {
+        trendData[record.month][statusValue] += 1;
       }
     });
 
-    const series = activeStatuses.map((status) => ({
-      name: status,
-      data: ALL_MONTHS.map((month) => trendData[month][status]),
-    }));
-
     return {
       categories: ALL_MONTHS,
-      series: series,
+      series: activeStatuses.map((status, idx) => ({
+        name: status,
+        data: ALL_MONTHS.map(month => trendData[month][status]),
+        color: colors[idx % colors.length]
+      }))
     };
   },
 
@@ -76,121 +72,67 @@ export default {
     return {
       months: [
         { label: "All Months", value: "All" },
-        ...ALL_MONTHS.map((month) => ({ label: month, value: month })),
+        ...ALL_MONTHS.map(m => ({ label: m, value: m }))
       ],
-      classifications: ALL_CLASSIFICATIONS.map((cls) => ({
+      classifications: ALL_CLASSIFICATIONS.map(cls => ({
         label: cls.charAt(0).toUpperCase() + cls.slice(1),
-        value: cls,
-      })),
+        value: cls
+      }))
     };
   },
 
   async fetchBarGraphData(filters = {}) {
-    const records = await assessmentModel.getAllAssessments();
-
-    if (!records) {
-      throw new Error(
-        "Failed to retrieve nutrition assessments from the database",
-      );
-    }
-
     const activeMonth = filters.month || "All";
-    const activeClassifications =
-      filters.classifications &&
-      Array.isArray(filters.classifications) &&
-      filters.classifications.length > 0
-        ? filters.classifications
-        : ALL_CLASSIFICATIONS;
+    const activeBarangay = filters.barangay || "all";
+    const activeAgeGroup = filters.ageGroup || "all";
+    const classificationsParam = filters.classifications || "";
+    const activeClassifications = classificationsParam.length > 0
+      ? (typeof classificationsParam === 'string' ? classificationsParam.split(',') : classificationsParam)
+      : ALL_CLASSIFICATIONS;
 
-    const uniqueBarangays = [
-      ...new Set(records.map((r) => r.barangay).filter(Boolean)),
-    ].sort();
+    const aggregated = await assessmentModel.getFilteredBarangayBarData(activeMonth);
+    const uniqueBarangays = aggregated.map(a => a.barangay);
 
     const barData = {};
-    uniqueBarangays.forEach((barangay) => {
-      barData[barangay] = {};
-      activeClassifications.forEach((cls) => {
-        barData[barangay][cls] = 0;
+    uniqueBarangays.forEach(b => {
+      barData[b] = {};
+      activeClassifications.forEach(cls => { barData[b][cls] = 0; });
+    });
+
+    aggregated.forEach(record => {
+      const b = record.barangay;
+      if (!barData[b]) return;
+      activeClassifications.forEach(cls => {
+        const key = cls + '_count';
+        barData[b][cls] = Number(record[key]) || 0;
       });
     });
 
-    records.forEach((record) => {
-      const isMonthMatch =
-        activeMonth === "All" || record.month === activeMonth;
-      const isClassMatch = activeClassifications.includes(
-        record.classification,
-      );
-
-      if (isMonthMatch && isClassMatch && barData[record.barangay]) {
-        barData[record.barangay][record.classification] += 1;
-      }
-    });
-
-    const series = activeClassifications.map((cls) => ({
-      name: cls.charAt(0).toUpperCase() + cls.slice(1),
-      data: uniqueBarangays.map((barangay) => barData[barangay][cls]),
-    }));
-
     return {
       categories: uniqueBarangays,
-      series: series,
+      series: activeClassifications.map(cls => ({
+        name: cls.charAt(0).toUpperCase() + cls.slice(1),
+        data: uniqueBarangays.map(b => Number(barData[b][cls]))
+      }))
     };
   },
 
   async fetchMapData() {
-    const coords = await assessmentModel.getBarangayCoordinates();
-    const aggregations = await assessmentModel.getNutritionalRiskAggregations();
-
-    const mapData = [];
-
-    for (const [barangay, data] of Object.entries(aggregations)) {
-      const coordinate = coords[barangay] || { lat: 0, lng: 0 };
-      const riskRatio = (data.deficit + data.excess) / data.total;
-
-      let riskLevel = 'Low';
-      let markerColor = 'green';
-
-      if (riskRatio >= 0.4) {
-        riskLevel = 'High';
-        markerColor = 'red';
-      } else if (riskRatio >= 0.2) {
-        riskLevel = 'Medium';
-        markerColor = 'orange';
-      }
-
-      mapData.push({
-        barangay,
-        lat: coordinate.lat,
-        lng: coordinate.lng,
-        metrics: data,
-        riskLevel,
-        markerColor
-      });
-    }
-
-    return mapData;
+    return await assessmentModel.getBarangayMapData();
   },
 
   async fetchBarangayHealthInsights(barangayName) {
-    if (!barangayName) {
-      throw new Error("Barangay identifier is required");
-    }
+    if (!barangayName) throw new Error("Barangay identifier is required");
 
     const records = await assessmentModel.getAssessmentsByBarangay(barangayName);
-
     if (!records || records.length === 0) {
-      return {
-        barangay: barangayName,
-        total: 0,
-        classifications: { healthy: 0, deficit: 0, excess: 0 },
-        statuses: {}
-      };
+      return { barangay: barangayName, total: 0, classifications: { normal: 0, stunted: 0, obese: 0 }, statuses: {} };
     }
 
     const insights = {
       barangay: barangayName,
       total: records.length,
-      classifications: { healthy: 0, deficit: 0, excess: 0 },
+      classifications: { normal: 0, stunted: 0, obese: 0 },
       statuses: {}
     };
 
@@ -198,11 +140,8 @@ export default {
       if (insights.classifications[record.classification] !== undefined) {
         insights.classifications[record.classification] += 1;
       }
-
-      if (!insights.statuses[record.status]) {
-        insights.statuses[record.status] = 0;
-      }
-      insights.statuses[record.status] += 1;
+      if (!insights.statuses[record.wfa_status]) insights.statuses[record.wfa_status] = 0;
+      insights.statuses[record.wfa_status] += 1;
     });
 
     return insights;

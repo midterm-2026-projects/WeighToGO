@@ -1,115 +1,58 @@
-import React from 'react';
-
-export const MonthlyReportTable = () => {
-  const mockReportData = [
-    {
-      id: 1,
-      caregiver: "ANGELIQUE",
-      childName: "GOMEZ, JAMES ANDREI",
-      ipGroup: "NO",
-      sex: "M",
-      dob: "Jan-07-2026",
-      dateMeasured: "Jul-15-2026",
-      weight: "4.7",
-      height: "57.0",
-      age: 6,
-      wfa: "N",
-      hfa: "N",
-      wflh: "N"
-    },
-    {
-      id: 2,
-      caregiver: "RICHARD",
-      childName: "CASTROMERO, RAYVIN",
-      ipGroup: "NO",
-      sex: "M",
-      dob: "Jul-07-2025",
-      dateMeasured: "Jul-15-2026",
-      weight: "5.9",
-      height: "66.0",
-      age: 12,
-      wfa: "N",
-      hfa: "N",
-      wflh: "N"
-    },
-    {
-      id: 3,
-      caregiver: "LEAHROSE",
-      childName: "MACALALAD, DYLAN CHARLES",
-      ipGroup: "NO",
-      sex: "M",
-      dob: "Jan-07-2025",
-      dateMeasured: "Jul-15-2026",
-      weight: "10.6",
-      height: "75.0",
-      age: 18,
-      wfa: "OW",
-      hfa: "N",
-      wflh: "OB"
-    },
-    {
-      id: 4,
-      caregiver: "JENNELYN",
-      childName: "PEREZ, ETHAN JAKE",
-      ipGroup: "NO",
-      sex: "M",
-      dob: "Jul-07-2024",
-      dateMeasured: "Jul-15-2026",
-      weight: "8.3",
-      height: "84.0",
-      age: 24,
-      wfa: "N",
-      hfa: "N",
-      wflh: "SW"
-    }
+export function MonthlyReportTable({ records = [] }) {
+  const data = records.length > 0 ? records : [
+    { child_name: "GOMEZ, JAMES ANDREI", parent_name: "BAUTISTA, ANGELIQUE", barangay: "Brgy. Navotas", gender: "Male", birthdate: "2026-01-01", age_months: 6, weight: 7.5, height: 65.0, wfa_status: "Normal", hfa_status: "Normal", wfhl_status: "Normal" },
+    { child_name: "CASTROMERO, RAYVIN", parent_name: "CASTROMERO, RICHARD", barangay: "Brgy. Navotas", gender: "Male", birthdate: "2025-07-01", age_months: 12, weight: 9.2, height: 72.0, wfa_status: "Normal", hfa_status: "Normal", wfhl_status: "Normal" },
   ];
 
+  const statusColor = (status) => {
+    if (status === 'Normal') return 'bg-green-100 text-green-700 border-green-200';
+    if (status === 'Overweight' || status === 'Obese') return 'bg-amber-100 text-amber-700 border-amber-200';
+    return 'bg-red-100 text-red-700 border-red-200';
+  };
+
   return (
-    <div className="report-table-container">
-      <h3>Masterlist Report Data</h3>
-      <div className="table-scroll-wrapper">
-        <table className="monthly-report-grid-table">
-          <thead>
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="overflow-x-auto">
+        <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
+          <thead className="bg-gray-50 text-gray-700 uppercase tracking-wider text-xs">
             <tr>
-              <th>Caregiver</th>
-              <th>Name of Child</th>
-              <th>IP Group</th>
-              <th>Sex</th>
-              <th>Date of Birth</th>
-              <th>Date Measured</th>
-              <th>Weight (kg)</th>
-              <th>Height (cm)</th>
-              <th>Age (mos)</th>
-              <th>Weight for Age (WFA)</th>
-              <th>Height for Age (HFA)</th>
-              <th>Weight for Lt/Ht (WFL/H)</th>
+              <th className="px-4 py-3 font-semibold">Caregiver</th>
+              <th className="px-4 py-3 font-semibold">Child Name</th>
+              <th className="px-4 py-3 font-semibold">Barangay</th>
+              <th className="px-4 py-3 font-semibold">Sex</th>
+              <th className="px-4 py-3 font-semibold">Birthdate</th>
+              <th className="px-4 py-3 font-semibold text-center">Age (mos)</th>
+              <th className="px-4 py-3 font-semibold text-center">Weight (kg)</th>
+              <th className="px-4 py-3 font-semibold text-center">Height (cm)</th>
+              <th className="px-4 py-3 font-semibold text-center">WFA</th>
+              <th className="px-4 py-3 font-semibold text-center">HFA</th>
+              <th className="px-4 py-3 font-semibold text-center">WFH/L</th>
             </tr>
           </thead>
-          <tbody>
-            {mockReportData.map((row) => (
-              <tr key={row.id}>
-                <td>{row.caregiver}</td>
-                <td className="child-name-bold">{row.childName}</td>
-                <td>{row.ipGroup}</td>
-                <td>{row.sex}</td>
-                <td>{row.dob}</td>
-                <td>{row.dateMeasured}</td>
-                <td className="metric-numeric-bold">{row.weight}</td>
-                <td className="metric-numeric-bold">{row.height}</td>
-                <td>{row.age}</td>
-                <td>
-                  <span className={`badge badge-${row.wfa.toLowerCase()}`}>
-                    {row.wfa}
+          <tbody className="divide-y divide-gray-200">
+            {data.map((row, idx) => (
+              <tr key={idx} className="hover:bg-gray-50 transition-colors">
+                <td className="px-4 py-3 font-medium text-gray-600 uppercase text-xs">{row.parent_name}</td>
+                <td className="px-4 py-3 font-bold text-gray-800 uppercase text-xs">{row.child_name}</td>
+                <td className="px-4 py-3 text-xs">{row.barangay}</td>
+                <td className="px-4 py-3 text-xs">{row.gender}</td>
+                <td className="px-4 py-3 text-xs">{row.birthdate}</td>
+                <td className="px-4 py-3 text-center">{row.age_months}</td>
+                <td className="px-4 py-3 text-center font-bold">{row.weight}</td>
+                <td className="px-4 py-3 text-center font-bold">{row.height}</td>
+                <td className="px-4 py-3 text-center">
+                  <span className={`inline-block px-2 py-0.5 text-xs font-bold border rounded-full ${statusColor(row.wfa_status)}`}>
+                    {row.wfa_status === 'Normal' ? 'N' : row.wfa_status === 'Overweight' ? 'OW' : row.wfa_status === 'Obese' ? 'OB' : row.wfa_status === 'Underweight' ? 'UW' : 'SUW'}
                   </span>
                 </td>
-                <td>
-                  <span className={`badge badge-${row.hfa.toLowerCase()}`}>
-                    {row.hfa}
+                <td className="px-4 py-3 text-center">
+                  <span className={`inline-block px-2 py-0.5 text-xs font-bold border rounded-full ${statusColor(row.hfa_status)}`}>
+                    {row.hfa_status === 'Normal' ? 'N' : row.hfa_status === 'Stunted' ? 'ST' : 'SST'}
                   </span>
                 </td>
-                <td>
-                  <span className={`badge badge-${row.wflh.toLowerCase()}`}>
-                    {row.wflh}
+                <td className="px-4 py-3 text-center">
+                  <span className={`inline-block px-2 py-0.5 text-xs font-bold border rounded-full ${statusColor(row.wfhl_status)}`}>
+                    {row.wfhl_status === 'Normal' ? 'N' : row.wfhl_status === 'Wasted' ? 'MW' : row.wfhl_status === 'Overweight' ? 'OW' : row.wfhl_status === 'Obese' ? 'OB' : 'SW'}
                   </span>
                 </td>
               </tr>
@@ -119,4 +62,4 @@ export const MonthlyReportTable = () => {
       </div>
     </div>
   );
-};
+}

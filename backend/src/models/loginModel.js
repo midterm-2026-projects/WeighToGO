@@ -1,21 +1,14 @@
-const mockDatabase = [
-  {
-    id: 1,
-    role: "Administrator (Admin)",
-    email: "user@health.gov.ph",
-    password: "Balayan2026!"
-  },
-  {
-    id: 2,
-    role: "Barangay Nutrition Scholar",
-    email: "bns@health.gov.ph",
-    password: "BNSBalayan2026!"
-  }
-];
+import db from '../config/db.js';
 
 export async function findAdminByEmailAndRole(email, role) {
-  const user = mockDatabase.find(
-    (account) => account.email === email && account.role === role
+  const [rows] = await db.query(
+    'SELECT * FROM users WHERE email = ? AND role = ?',
+    [email, role]
   );
-  return user || null;
+  return rows[0] || null;
+}
+
+export async function findUserById(id) {
+  const [rows] = await db.query('SELECT id, role, email, assigned_barangay FROM users WHERE id = ?', [id]);
+  return rows[0] || null;
 }

@@ -1,5 +1,6 @@
 import childModel from '../models/child.model.js';
- const BARANGAY_OPTIONS = [
+
+const BARANGAY_OPTIONS = [
   "Brgy. Caloocan", "Brgy. Lanatan", "Brgy. Uno", "Brgy. Ermita",
   "Brgy. Gumamela", "Brgy. Navotas", "Brgy. Palikpikan", "Brgy. Sampaga",
   "Brgy. Santol", "Brgy. Dilao", "Brgy. Dalig", "Brgy. Langgangan",
@@ -9,174 +10,115 @@ const AGE_OPTIONS = ["0-11 Months", "12-23 Months", "24-59 Months"];
 const STATUS_OPTIONS = ["Normal", "Malnourished", "Obese"];
 
 const STATUS_TO_CLASSIFICATION = {
-  Normal: 'healthy',
-  Malnourished: 'deficit',
-  Obese: 'excess'
+  Normal: 'normal',
+  Malnourished: 'stunted',
+  Obese: 'obese'
 };
 
 export default {
   async fetchFilterOptions() {
     const children = await childModel.getAllChildrenRecords();
+    if (!children) throw new Error('Failed to retrieve child records from the database');
 
-    if (!children) {
-      throw new Error('Failed to retrieve child records from the database');
-    }
+    const uniqueBarangays = [...new Set(children.map(c => c.barangay).filter(Boolean))];
+    const uniqueAges = [...new Set(children.map(c => c.age_months).filter(Boolean))];
 
-    const uniqueBarangays = [...new Set(children.map(child => child.barangay).filter(Boolean))];
-    const uniqueAges = [...new Set(children.map(child => child.ageGroup).filter(Boolean))];
-
-    const hasWfa = children.some(child => child.wfaStatus);
-    const hasHfa = children.some(child => child.hfaStatus);
-    const hasWfhl = children.some(child => child.wfhlStatus);
-
-    const barangayOptions = [
-      { label: 'All Barangays', value: 'all' },
-      ...uniqueBarangays.map(barangay => ({ label: barangay, value: barangay }))
-    ];
-
-    const ageOptions = [
-      { label: 'All Ages', value: 'all' },
-      ...uniqueAges.map(age => ({ label: age, value: age }))
-    ];
-
-    const indicatorOptions = [{ label: 'All Indicators', value: 'all' }];
-
-    if (hasWfa) indicatorOptions.push({ label: 'Weight-for-Age (WFA)', value: 'wfa' });
-    if (hasHfa) indicatorOptions.push({ label: 'Height-for-Age (HFA)', value: 'hfa' });
-    if (hasWfhl) indicatorOptions.push({ label: 'Weight-for-Length/Height (WFH/L)', value: 'wfhl' });
+    const ageGroups = uniqueAges.map(a => {
+      if (a <= 11) return '0-11 Months';
+      if (a <= 23) return '12-23 Months';
+      return '24-59 Months';
+    });
+    const uniqueAgeGroups = [...new Set(ageGroups)];
 
     return {
-      barangays: barangayOptions,
-      ages: ageOptions,
-      nutritionalIndicators: indicatorOptions
+      barangays: [
+        { label: 'All Barangays', value: 'all' },
+        ...uniqueBarangays.map(b => ({ label: b, value: b }))
+      ],
+      ages: [
+        { label: 'All Ages', value: 'all' },
+        ...uniqueAgeGroups.map(a => ({ label: a, value: a }))
+      ],
+      nutritionalIndicators: [
+        { label: 'All Indicators', value: 'all' },
+        { label: 'Weight-for-Age (WFA)', value: 'wfa' },
+        { label: 'Height-for-Age (HFA)', value: 'hfa' },
+        { label: 'Weight-for-Length/Height (WFH/L)', value: 'wfhl' }
+      ]
     };
   },
 
   async calculateNutritionalTotals() {
-    const records = await childModel.getAllChildrenRecords();
+    return await childModel.countByClassification();
+  },
 
-    if (!records) {
-      throw new Error('Failed to retrieve child records from the database');
-    }
-
-    const totals = records.reduce((acc, currentRecord) => {
-      const status = currentRecord?.classification?.toLowerCase();
-
-      if (status === 'healthy') {
-        acc.healthy += 1;
-      } else if (status === 'deficit') {
-        acc.deficit += 1;
-      } else if (status === 'excess') {
-        acc.excess += 1;
-      }
-
-      return acc;
-    }, { healthy: 0, deficit: 0, excess: 0 });
-
-    return totals;
+  async calculateFilteredTotals(barangay, ageGroup) {
+    return await childModel.countFilteredTotals(barangay, ageGroup);
   },
 
   async fetchMasterlist() {
     const records = await childModel.getAllChildrenRecords();
-
-    if (!records) {
-      throw new Error('Failed to retrieve masterlist from the database');
-    }
-
+    if (!records) throw new Error('Failed to retrieve masterlist from the database');
     return records;
   },
 
   async registerChild(payload) {
-    if (!payload.name || !payload.barangay || !payload.purok || !payload.parents || payload.age === undefined) {
+    if (!payload.name || !payload.barangay || !payload.purok || !payload.parent_name || payload.age_months === undefined) {
       throw new Error('Missing required fields for child registration');
     }
-
     const newRecord = await childModel.createChildRecord(payload);
-
-    if (!newRecord) {
-      throw new Error('Database insertion failed');
-    }
-
+    if (!newRecord) throw new Error('Database insertion failed');
     return newRecord;
   },
 
   async filterChildMasterlist(barangay, ageGroup, status) {
-    if (barangay && barangay !== 'All' && !BARANGAY_OPTIONS.includes(barangay)) {
+    if (barangay && barangay !== 'All' && barangay !== 'all' && !BARANGAY_OPTIONS.includes(barangay)) {
       throw new Error('Invalid Barangay selection');
     }
-
-    if (ageGroup && ageGroup !== 'All' && !AGE_OPTIONS.includes(ageGroup)) {
+    if (ageGroup && ageGroup !== 'All' && ageGroup !== 'all' && !AGE_OPTIONS.includes(ageGroup)) {
       throw new Error('Invalid Nutritional Age Group selection');
     }
-
-    if (status && status !== 'All' && !STATUS_OPTIONS.includes(status)) {
+    if (status && status !== 'All' && status !== 'all' && !STATUS_OPTIONS.includes(status)) {
       throw new Error('Invalid Nutritional Status selection');
     }
 
-    const classification = status && status !== 'All' ? STATUS_TO_CLASSIFICATION[status] : undefined;
-
+    const classification = status && status !== 'All' && status !== 'all' ? STATUS_TO_CLASSIFICATION[status] : undefined;
     return await childModel.filterChildMasterlist(barangay, ageGroup, classification);
   },
 
   async generateMonthlyReport(month, year) {
-    if (!month || !year) {
-      throw new Error('Month and year are required to generate the report');
-    }
+    if (!month || !year) throw new Error('Month and year are required to generate the report');
 
     const records = await childModel.getMonthlyReportData(month, year);
-
     const summary = records.reduce((acc, child) => {
       acc.totalRegistered += 1;
-
-      const hfa = child.hfaStatus?.toLowerCase() || '';
-      const wfhl = child.wfhlStatus?.toLowerCase() || '';
-      
-      if (child.classification === 'healthy' || (child.wfaStatus?.toLowerCase() === 'normal' && hfa === 'normal')) {
-        acc.normal += 1;
-      }
-      
-      if (hfa.includes('stunted')) {
-        acc.stunted += 1;
-      }
-      
-      if (wfhl.includes('overweight') || wfhl.includes('obese')) {
-        acc.obese += 1;
-      }
-
+      if (child.classification === 'normal') acc.normal += 1;
+      if (child.classification === 'stunted') acc.stunted += 1;
+      if (child.classification === 'obese') acc.obese += 1;
       return acc;
     }, { totalRegistered: 0, normal: 0, stunted: 0, obese: 0 });
 
-    return {
-      summary,
-      records
-    };
+    return { summary, records };
   },
 
   async submitChildAssessment(childId, assessmentData) {
     if (!childId || !assessmentData.weight || !assessmentData.height) {
       throw new Error('Child ID, weight, and height are required to submit an assessment');
     }
-
     const updatedRecord = await childModel.updateChildAssessment(childId, assessmentData);
-    
-    if (!updatedRecord) {
-      throw new Error('Child record not found or assessment update failed');
-    }
-
+    if (!updatedRecord) throw new Error('Child record not found or assessment update failed');
     return updatedRecord;
   },
 
   async fetchChildProfile(id) {
-    if (!id) {
-      throw new Error('Child ID is required to fetch profile');
-    }
-
+    if (!id) throw new Error('Child ID is required to fetch profile');
     const profile = await childModel.getChildById(id);
-
-    if (!profile) {
-      throw new Error('Child profile not found');
-    }
-
+    if (!profile) throw new Error('Child profile not found');
     return profile;
+  },
+
+  async fetchChildHistory(id) {
+    if (!id) throw new Error('Child ID is required');
+    return await childModel.getChildAssessmentHistory(id);
   }
 };

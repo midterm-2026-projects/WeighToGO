@@ -10,11 +10,11 @@ describe('MasterlistTable Component', () => {
       {
         id: 1, 
         name: 'GOMEZ, JAMES ANDREI',
-        parent: 'BAUTISTA, ANGELIQUE',
+        parent_name: 'BAUTISTA, ANGELIQUE',
         gender: 'Male',
-        age: 6,
+        age_months: 6,
         purok: 'Purok 1',
-        status: 'Pending'
+        classification: 'Normal'
       }
     ];
 
@@ -27,12 +27,12 @@ describe('MasterlistTable Component', () => {
       />
     );
 
-    expect(screen.getByRole('columnheader', { name: /name of child/i })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /child name/i })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /parent \/ guardian/i })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /gender/i })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /age \(mos\)/i })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: /purok \/ sitio/i })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: /checkup status/i })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /purok/i })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /status/i })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /action/i })).toBeInTheDocument();
 
     expect(screen.getByText('GOMEZ, JAMES ANDREI')).toBeInTheDocument();

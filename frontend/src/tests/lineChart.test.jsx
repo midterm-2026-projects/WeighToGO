@@ -1,10 +1,24 @@
-import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import '@testing-library/jest-dom';
 import LineChart from '../components/dashboard/lineChart';
 
-// Mocking react-chartjs-2 to easily read the props passed to it
+vi.mock('../../services/api', () => ({
+  api: {
+    analytics: {
+      trendline: () => Promise.resolve({
+        data: {
+          categories: ['Jan', 'Feb', 'Mar'],
+          series: [
+            { name: 'Normal', data: [5, 3, 4], color: '#10b981' },
+            { name: 'Underweight', data: [1, 2, 1], color: '#f59e0b' }
+          ]
+        }
+      })
+    }
+  }
+}));
+
 vi.mock('react-chartjs-2', () => ({
   Line: (props) => (
     <div 
@@ -20,75 +34,31 @@ describe('Line Chart - Monthly Nutritional Cases', () => {
     vi.clearAllMocks();
   });
 
-  it('should filter health cases in the line chart depending on the selected filter', async () => {
-    const user = userEvent.setup();
+  it('should render the line chart with monthly categories', async () => {
     render(<LineChart />);
     
-    const obesityCheckbox = screen.getByLabelText('Obesity');
-    await user.click(obesityCheckbox);
-    
-    // Use waitFor to allow React state to update after the click
-    await waitFor(() => {
-      const lineChart = screen.getByTestId('mock-line-chart');
-      const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
-      const activeLabels = datasets.map(d => d.label);
-      
-      expect(activeLabels).toContain('Obesity');
-    });
-  });
-
-  it('should function correctly based on the actual number of cases', () => {
-    render(<LineChart />);
-    
-    const lineChart = screen.getByTestId('mock-line-chart');
+    const lineChart = await screen.findByTestId('mock-line-chart');
     const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
     
-    const malnutritionData = datasets.find(d => d.label === 'Malnutrition');
-    expect(malnutritionData.data).toBeInstanceOf(Array);
-    expect(malnutritionData.data[0]).toBeTypeOf('number');
+    expect(Array.isArray(datasets)).toBe(true);
   });
 
-  it('should display no lines in the chart when no filters are selected', async () => {
-    const user = userEvent.setup();
+  it('should have numeric data for each series', async () => {
     render(<LineChart />);
     
-    const malnutritionCheckbox = screen.getByLabelText('Malnutrition');
+    const lineChart = await screen.findByTestId('mock-line-chart');
+    const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
     
-    if (malnutritionCheckbox.checked) {
-      await user.click(malnutritionCheckbox);
-    }
-    
-    await waitFor(() => {
-      const lineChart = screen.getByTestId('mock-line-chart');
-      const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
-      expect(datasets).toHaveLength(0);
+    datasets.forEach(d => {
+      expect(d.data).toBeInstanceOf(Array);
+      d.data.forEach(val => expect(typeof val).toBe('number'));
     });
   });
 
-  it('should only display the exact filters selected in the line chart', async () => {
-    const user = userEvent.setup();
+  it('should display the line at level 0 when there are no cases', async () => {
     render(<LineChart />);
     
-    const malnutritionCheckbox = screen.getByLabelText('Malnutrition');
-    const obesityCheckbox = screen.getByLabelText('Obesity');
-    
-    // Ensure exact state: Malnutrition ON, Obesity OFF
-    if (!malnutritionCheckbox.checked) await user.click(malnutritionCheckbox);
-    if (obesityCheckbox.checked) await user.click(obesityCheckbox);
-    
-    await waitFor(() => {
-      const lineChart = screen.getByTestId('mock-line-chart');
-      const datasets = JSON.parse(lineChart.getAttribute('data-datasets'));
-      
-      expect(datasets).toHaveLength(1);
-      expect(datasets[0].label).toBe('Malnutrition');
-    });
-  });
-
-  it('should display the line at level 0 when there are no cases', () => {
-    render(<LineChart />);
-    
-    const lineChart = screen.getByTestId('mock-line-chart');
+    const lineChart = await screen.findByTestId('mock-line-chart');
     const options = JSON.parse(lineChart.getAttribute('data-options'));
     
     expect(options.scales.y.beginAtZero).toBe(true);
