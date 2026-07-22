@@ -5,15 +5,24 @@ import TableHealthReport from '../components/W2D2/TableHealthReport';
 
 export default function HealthReportsPage() {
   const [reports, setReports] = useState([]);
+  const [barangays, setBarangays] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [selectedBarangay, setSelectedBarangay] = useState('All Barangays');
+  const [selectedBarangay, setSelectedBarangay] = useState('all');
+
+  useEffect(() => {
+    api.children.filters().then(res => {
+      if (res.data?.barangays) {
+        setBarangays(res.data.barangays);
+      }
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     setLoading(true);
     api.reports.health()
       .then(res => {
         let data = res.data || [];
-        if (selectedBarangay !== 'All Barangays') {
+        if (selectedBarangay !== 'all') {
           data = data.filter(r => r.barangay === selectedBarangay);
         }
         setReports(data);
@@ -31,6 +40,7 @@ export default function HealthReportsPage() {
       <HeaderHealthReport
         selectedBarangay={selectedBarangay}
         setSelectedBarangay={setSelectedBarangay}
+        barangays={barangays}
       />
       {loading ? (
         <p className="text-center text-gray-500 py-8">Loading...</p>

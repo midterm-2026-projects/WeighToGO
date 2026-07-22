@@ -51,6 +51,12 @@ export function getSession(token) {
   return ACTIVE_TOKENS.get(token) || null;
 }
 
+export function clearSession(token) {
+  if (token) {
+    ACTIVE_TOKENS.delete(token);
+  }
+}
+
 export function clearSessions() {
   ACTIVE_TOKENS.clear();
 }

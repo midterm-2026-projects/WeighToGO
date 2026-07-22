@@ -1,5 +1,5 @@
 import { loginService } from '../service/loginService.js';
-import { login, clearSessions, getSession } from '../service/authService.js';
+import { login, clearSession, getSession } from '../service/authService.js';
 
 export async function loginController(req, res) {
   try {
@@ -13,7 +13,7 @@ export async function loginController(req, res) {
 }
 
 export async function logoutController(req, res) {
-  clearSessions();
+  clearSession(req.token);
   res.json({ success: true, message: 'Logged out successfully' });
 }
 

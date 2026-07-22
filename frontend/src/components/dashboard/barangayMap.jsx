@@ -8,13 +8,17 @@ import { api } from '../../services/api';
 const DEFAULT_CENTER = [13.9475, 120.7370];
 const DEFAULT_ZOOM = 14;
 
-function createColoredIcon(color) {
+function createColoredIcon(color, name) {
+  const shortName = name.replace('Brgy. ', '').replace('Barangay ', 'Bgy. ');
   return L.divIcon({
     className: 'custom-marker-icon',
-    html: `<div style="width:20px;height:20px;background:${color};border:3px solid white;border-radius:50%;box-shadow:0 1px 5px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-    popupAnchor: [0, -10]
+    html: `<div style="display:flex;flex-direction:column;align-items:center;">
+      <div style="width:16px;height:16px;background:${color};border:2px solid white;border-radius:50%;box-shadow:0 1px 4px rgba(0,0,0,0.35);"></div>
+      <span style="margin-top:2px;font-size:10px;font-weight:600;color:#1f2937;background:rgba(255,255,255,0.85);padding:1px 4px;border-radius:3px;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.15);line-height:1.3;">${shortName}</span>
+    </div>`,
+    iconSize: [80, 36],
+    iconAnchor: [40, 36],
+    popupAnchor: [0, -20]
   });
 }
 
@@ -96,7 +100,7 @@ export default function BarangayMap({ initialData }) {
               <Marker
                 key={barangay.id}
                 position={[lat, lng]}
-                icon={createColoredIcon(markerColor)}
+                icon={createColoredIcon(markerColor, barangay.name)}
                 eventHandlers={{
                   click: () => setSelectedBarangay(barangay)
                 }}

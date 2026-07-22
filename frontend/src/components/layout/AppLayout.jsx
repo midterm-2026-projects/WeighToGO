@@ -22,7 +22,7 @@ export default function AppLayout() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="h-screen bg-gray-50 flex overflow-hidden">
       <aside className="w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col">
         <div className="p-6 border-b border-gray-100">
           <div className="flex items-center gap-2">

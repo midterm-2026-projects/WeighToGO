@@ -5,24 +5,24 @@ INSERT INTO users (role, email, password, assigned_barangay) VALUES
 ('Barangay Nutrition Scholar', 'bns@health.gov.ph', 'BNSBalayan2026!', 'Brgy. Navotas');
 
 INSERT INTO barangays (name, lat, lng) VALUES
-('Barangay 1', 13.9405, 120.7323),
-('Barangay 2', 13.9425, 120.7345),
-('Barangay 3', 13.9445, 120.7367),
-('Brgy. Caloocan', 13.9410, 120.7300),
-('Brgy. Lanatan', 13.9430, 120.7310),
-('Brgy. Uno', 13.9440, 120.7320),
-('Brgy. Ermita', 13.9450, 120.7330),
-('Brgy. Gumamela', 13.9460, 120.7340),
-('Brgy. Navotas', 13.9470, 120.7350),
-('Brgy. Palikpikan', 13.9480, 120.7360),
-('Brgy. Sampaga', 13.9490, 120.7370),
-('Brgy. Santol', 13.9500, 120.7380),
-('Brgy. Dilao', 13.9510, 120.7390),
-('Brgy. Dalig', 13.9520, 120.7400),
-('Brgy. Langgangan', 13.9530, 120.7410),
-('Brgy. Canda', 13.9540, 120.7420),
-('Brgy. Pooc', 13.9550, 120.7430),
-('Brgy. Tanggoy', 13.9560, 120.7440);
+('Barangay 1', 13.9320, 120.7296),
+('Barangay 2', 13.9368, 120.7238),
+('Barangay 3', 13.9398, 120.7275),
+('Brgy. Caloocan', 13.9488, 120.7227),
+('Brgy. Lanatan', 13.9576, 120.7279),
+('Brgy. Uno', 13.9350, 120.7280),
+('Brgy. Ermita', 13.9440, 120.7290),
+('Brgy. Gumamela', 13.9456, 120.7432),
+('Brgy. Navotas', 13.9316, 120.7197),
+('Brgy. Palikpikan', 13.9215, 120.6837),
+('Brgy. Sampaga', 13.9428, 120.7728),
+('Brgy. Santol', 13.9416, 120.7132),
+('Brgy. Dilao', 13.9782, 120.6795),
+('Brgy. Dalig', 13.9431, 120.6945),
+('Brgy. Langgangan', 13.9445, 120.7546),
+('Brgy. Canda', 13.9508, 120.7081),
+('Brgy. Pooc', 13.9612, 120.7577),
+('Brgy. Tanggoy', 13.9495, 120.6763);
 
 INSERT INTO children (name, barangay, purok, parent_name, age_months, gender, birthdate, wfa_status, hfa_status, wfhl_status, classification, weight, height) VALUES
 ('GOMEZ, JAMES ANDREI', 'Brgy. Navotas', 'Purok 1', 'BAUTISTA, ANGELIQUE', 6, 'Male', '2026-01-01', 'Normal', 'Normal', 'Normal', 'normal', 7.5, 65.0),

@@ -10,6 +10,7 @@ const BARANGAY_OPTIONS = [
 
 const AGE_OPTIONS = ["0-11 Months", "12-23 Months", "24-59 Months"];
 const STATUS_OPTIONS = ["Normal", "Malnourished", "Obese"];
+const ROWS_PER_PAGE = 10;
 
 function StatusBadge({ status }) {
   const styles = {
@@ -37,6 +38,7 @@ export default function AdminMasterlistPage() {
   const [selectedAge, setSelectedAge] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
   const [selectedChild, setSelectedChild] = useState(null);
+  const [page, setPage] = useState(0);
 
   const fetchChildren = async (params) => {
     setLoading(true);
@@ -53,6 +55,7 @@ export default function AdminMasterlistPage() {
   useEffect(() => { fetchChildren(); }, []);
 
   useEffect(() => {
+    setPage(0);
     const params = {};
     if (selectedBarangay !== 'All') params.barangay = selectedBarangay;
     if (selectedAge !== 'All') params.ageGroup = selectedAge;
@@ -60,9 +63,21 @@ export default function AdminMasterlistPage() {
     fetchChildren(Object.keys(params).length > 0 ? params : undefined);
   }, [selectedBarangay, selectedAge, selectedStatus]);
 
+  const totalPages = Math.ceil(children.length / ROWS_PER_PAGE);
+  const paged = children.slice(page * ROWS_PER_PAGE, (page + 1) * ROWS_PER_PAGE);
+
+  const formatBirthdate = (date) => {
+    if (!date) return '';
+    const d = new Date(date);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${mm}-${dd}-${yyyy}`;
+  };
+
   return (
-    <div className="p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="h-full flex flex-col p-6 overflow-hidden">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4 shrink-0">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Children Masterlist</h1>
           <p className="text-sm text-gray-500 mt-1">Detailed list of children, dimensions, and statuses.</p>
@@ -95,7 +110,7 @@ export default function AdminMasterlistPage() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex items-center justify-between border-l-4 border-l-emerald-500 mb-6">
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex items-center justify-between border-l-4 border-l-emerald-500 mb-4 shrink-0">
         <div className="space-y-1">
           <span className="text-xs font-semibold text-gray-400 tracking-wider uppercase">Total Registered</span>
           <div className="text-3xl font-extrabold text-emerald-600">{children.length}</div>
@@ -111,43 +126,73 @@ export default function AdminMasterlistPage() {
       {loading ? (
         <p className="text-center text-gray-500 py-8">Loading...</p>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-sm text-left">
-              <thead className="bg-gray-50 text-gray-700 uppercase tracking-wider text-xs">
-                <tr>
-                  <th className="px-4 py-3 font-semibold">Purok</th>
-                  <th className="px-4 py-3 font-semibold">Parent</th>
-                  <th className="px-4 py-3 font-semibold">Child Name</th>
-                  <th className="px-4 py-3 font-semibold text-center">Sex</th>
-                  <th className="px-4 py-3 font-semibold text-center">Age (mos)</th>
-                  <th className="px-4 py-3 font-semibold">Birthdate</th>
-                  <th className="px-4 py-3 font-semibold text-center">Weight</th>
-                  <th className="px-4 py-3 font-semibold text-center">Height</th>
-                  <th className="px-4 py-3 font-semibold text-center">WFA</th>
-                  <th className="px-4 py-3 font-semibold text-center">HFA</th>
-                  <th className="px-4 py-3 font-semibold text-center">WFH/L</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {children.map((child) => (
-                  <tr key={child.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setSelectedChild(child)}>
-                    <td className="px-4 py-3 text-xs">{child.purok}</td>
-                    <td className="px-4 py-3 font-medium text-gray-600 uppercase text-xs">{child.parent_name}</td>
-                    <td className="px-4 py-3 font-bold text-gray-800 uppercase text-xs">{child.name}</td>
-                    <td className="px-4 py-3 text-center text-xs">{child.gender}</td>
-                    <td className="px-4 py-3 text-center">{child.age_months}</td>
-                    <td className="px-4 py-3 text-xs">{child.birthdate}</td>
-                    <td className="px-4 py-3 text-center font-bold">{child.weight}</td>
-                    <td className="px-4 py-3 text-center font-bold">{child.height}</td>
-                    <td className="px-4 py-3 text-center"><StatusBadge status={child.wfa_status} /></td>
-                    <td className="px-4 py-3 text-center"><StatusBadge status={child.hfa_status} /></td>
-                    <td className="px-4 py-3 text-center"><StatusBadge status={child.wfhl_status} /></td>
+        <div className="flex-1 min-h-0 flex flex-col bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-x-auto hide-scrollbar">
+              <table className="w-full divide-y divide-gray-200 text-xs">
+                <thead className="bg-gray-50 text-gray-700 uppercase tracking-wider sticky top-0">
+                  <tr>
+                    <th className="px-3 py-2.5 font-semibold text-left">Purok</th>
+                    <th className="px-3 py-2.5 font-semibold text-left">Barangay</th>
+                    <th className="px-3 py-2.5 font-semibold text-left">Parent</th>
+                    <th className="px-3 py-2.5 font-semibold text-left">Child Name</th>
+                    <th className="px-3 py-2.5 font-semibold text-left">Sex</th>
+                    <th className="px-3 py-2.5 font-semibold text-center">Age</th>
+                    <th className="px-3 py-2.5 font-semibold text-left">Birthdate</th>
+                    <th className="px-3 py-2.5 font-semibold text-center">Wt</th>
+                    <th className="px-3 py-2.5 font-semibold text-center">Ht</th>
+                    <th className="px-3 py-2.5 font-semibold text-center">WFA</th>
+                    <th className="px-3 py-2.5 font-semibold text-center">HFA</th>
+                    <th className="px-3 py-2.5 font-semibold text-center">WFH/L</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {paged.map((child) => (
+                    <tr key={child.id} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setSelectedChild(child)}>
+                      <td className="px-3 py-2 text-left">{child.purok}</td>
+                      <td className="px-3 py-2 text-left">{child.barangay}</td>
+                      <td className="px-3 py-2 font-medium text-gray-600 uppercase text-left truncate max-w-[120px]">{child.parent_name}</td>
+                      <td className="px-3 py-2 font-bold text-gray-800 uppercase text-left truncate max-w-[140px]">{child.name}</td>
+                      <td className="px-3 py-2 text-left">{child.gender}</td>
+                      <td className="px-3 py-2 text-center">{child.age_months}</td>
+                      <td className="px-3 py-2 text-left">{formatBirthdate(child.birthdate)}</td>
+                      <td className="px-3 py-2 text-center font-bold">{child.weight}</td>
+                      <td className="px-3 py-2 text-center font-bold">{child.height}</td>
+                      <td className="px-3 py-2 text-center"><StatusBadge status={child.wfa_status} /></td>
+                      <td className="px-3 py-2 text-center"><StatusBadge status={child.hfa_status} /></td>
+                      <td className="px-3 py-2 text-center"><StatusBadge status={child.wfhl_status} /></td>
+                    </tr>
+                  ))}
+                  {paged.length === 0 && (
+                    <tr>
+                      <td colSpan="12" className="px-3 py-8 text-center text-gray-400">No matching child records found.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200 bg-gray-50 shrink-0">
+              <span className="text-xs text-gray-500">
+                Showing {page * ROWS_PER_PAGE + 1}–{Math.min((page + 1) * ROWS_PER_PAGE, children.length)} of {children.length}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setPage(p => p - 1)}
+                  disabled={page === 0}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setPage(p => p + 1)}
+                  disabled={page >= totalPages - 1}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

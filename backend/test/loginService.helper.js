@@ -1,5 +1,5 @@
-import { login, verifyRouteSecurity } from "./authService.js";
-import { findAdminByEmailAndRole } from "../models/loginModel.js";
+import { login, verifyRouteSecurity } from "../src/service/authService.js";
+import { findAdminByEmailAndRole } from "../src/models/loginModel.js";
 
 const VALID_ROLES = ["Administrator (Admin)", "Barangay Nutrition Scholar"];
 const VALID_SIDENAV_ROUTES = ["/masterlist", "/health-reports"];
@@ -21,7 +21,11 @@ export async function loginService(role, email, password, database = []) {
     fail("Weak password configuration");
   }
 
-  const matchedUser = await findAdminByEmailAndRole(email, role, database);
+  const matchedUser = await findAdminByEmailAndRole(
+    email,
+    role,
+    database
+  );
 
   if (!matchedUser || matchedUser.password !== password) {
     fail("Incorrect email or password");
@@ -67,7 +71,10 @@ export async function verifySidenavRouting(token, requestedRoute) {
     throw new Error("Invalid sidebar navigation target");
   }
 
-  const securityCheck = await verifyRouteSecurity(token, requestedRoute);
+  const securityCheck = await verifyRouteSecurity(
+    token,
+    requestedRoute
+  );
 
   return {
     route: requestedRoute,
