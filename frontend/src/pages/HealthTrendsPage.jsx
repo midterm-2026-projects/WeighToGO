@@ -10,7 +10,7 @@ const AGE_OPTIONS = [
   { label: '24-59 Months', value: '24-59 Months' },
 ];
 
-const STATUS_OPTIONS = [
+const STATUS_TYPE_OPTIONS = [
   { label: 'All Status', value: 'all' },
   { label: 'Weight-for-Age (WFA)', value: 'wfa' },
   { label: 'Height-for-Age (HFA)', value: 'hfa' },
@@ -21,7 +21,7 @@ export default function HealthTrendsPage() {
   const [barangays, setBarangays] = useState([{ label: 'All Barangays', value: 'all' }]);
   const [selectedBarangay, setSelectedBarangay] = useState('all');
   const [selectedAge, setSelectedAge] = useState('all');
-  const [selectedStatus, setSelectedStatus] = useState('wfa');
+  const [selectedStatusType, setSelectedStatusType] = useState('wfa');
   const [totals, setTotals] = useState({ total: 0, normal: 0, stunted: 0, obese: 0 });
   const [loading, setLoading] = useState(true);
   const [filterKey, setFilterKey] = useState(0);
@@ -128,11 +128,11 @@ export default function HealthTrendsPage() {
           <div>
             <label className="block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide">Status Type</label>
             <select
-              value={selectedStatus}
-              onChange={handleFilterChange(setSelectedStatus)}
+              value={selectedStatusType}
+              onChange={handleFilterChange(setSelectedStatusType)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
             >
-              {STATUS_OPTIONS.map(s => (
+              {STATUS_TYPE_OPTIONS.map(s => (
                 <option key={s.value} value={s.value}>{s.label}</option>
               ))}
             </select>
@@ -160,7 +160,7 @@ export default function HealthTrendsPage() {
         key={`line-${filterKey}`}
         barangay={selectedBarangay}
         ageGroup={selectedAge}
-        statusType={selectedStatus}
+        statusType={selectedStatusType}
         total={totals.total}
       />
 

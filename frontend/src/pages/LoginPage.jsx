@@ -8,14 +8,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/health-trends', { replace: true });
+    if (isAuthenticated && user) {
+      if (user.role === 'Barangay Nutrition Scholar') {
+        navigate('/bns/masterlist', { replace: true });
+      } else {
+        navigate('/health-trends', { replace: true });
+      }
     }
-  }, []);
+  }, [isAuthenticated, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

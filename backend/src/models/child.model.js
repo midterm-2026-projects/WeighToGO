@@ -26,7 +26,7 @@ export default {
     return this.getChildById(result.insertId);
   },
 
-  async filterChildMasterlist(barangay, ageGroup, classification) {
+  async filterChildMasterlist(barangay, ageGroup, classification, name, purok, checkupStatus) {
     let query = 'SELECT * FROM children WHERE 1=1';
     const params = [];
 
@@ -47,23 +47,54 @@ export default {
       params.push(classification);
     }
 
+    if (name) {
+      query += ' AND name LIKE ?';
+      params.push(`%${name}%`);
+    }
+
+    if (purok) {
+      query += ' AND purok = ?';
+      params.push(purok);
+    }
+
+    if (checkupStatus && checkupStatus !== 'all') {
+      query += ' AND checkup_status = ?';
+      params.push(checkupStatus);
+    }
+
     query += ' ORDER BY created_at DESC';
     const [rows] = await db.query(query, params);
     return rows;
+  },
+
+  async hasAssessmentThisMonth(childId, month, year) {
+    const [rows] = await db.query(
+      'SELECT id FROM assessments WHERE child_id = ? AND month = ? AND year = ? LIMIT 1',
+      [childId, month, year]
+    );
+    return rows.length > 0;
   },
 
   async updateChildAssessment(childId, updateData) {
     const child = await this.getChildById(childId);
     if (!child) return null;
 
+    const month = updateData.month || new Date().toLocaleString('en-US', { month: 'short' });
+    const year = updateData.year || new Date().getFullYear();
+
+    const updatedWfaStatus = updateData.wfa_status || child.wfa_status;
+    const updatedHfaStatus = updateData.hfa_status || child.hfa_status;
+    const updatedWfhlStatus = updateData.wfhl_status || child.wfhl_status;
+    const updatedClassification = updateData.classification || child.classification;
+
     await db.query(
       `UPDATE children SET weight = ?, height = ?, wfa_status = ?, hfa_status = ?, wfhl_status = ?, classification = ? WHERE id = ?`,
       [
         updateData.weight, updateData.height,
-        updateData.wfa_status || child.wfa_status,
-        updateData.hfa_status || child.hfa_status,
-        updateData.wfhl_status || child.wfhl_status,
-        updateData.classification || child.classification,
+        updatedWfaStatus,
+        updatedHfaStatus,
+        updatedWfhlStatus,
+        updatedClassification,
         childId
       ]
     );
@@ -72,14 +103,12 @@ export default {
       `INSERT INTO assessments (child_id, month, year, weight, height, wfa_status, hfa_status, wfhl_status, classification)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        childId,
-        updateData.month || new Date().toLocaleString('en-US', { month: 'short' }),
-        updateData.year || new Date().getFullYear(),
+        childId, month, year,
         updateData.weight, updateData.height,
-        updateData.wfa_status || child.wfa_status,
-        updateData.hfa_status || child.hfa_status,
-        updateData.wfhl_status || child.wfhl_status,
-        updateData.classification || child.classification
+        updatedWfaStatus,
+        updatedHfaStatus,
+        updatedWfhlStatus,
+        updatedClassification
       ]
     );
 
@@ -94,7 +123,17 @@ export default {
     return rows;
   },
 
-  async getMonthlyReportData(month, year) {
+  async getMonthlyReportData(month, year, barangay) {
+    if (barangay && barangay !== 'All' && barangay !== 'all') {
+      const query = `SELECT a.*, c.name AS child_name, c.barangay, c.purok, c.parent_name, c.gender, c.age_months
+      FROM assessments a
+      JOIN children c ON a.child_id = c.id
+      WHERE a.month = ? AND a.year = ? AND c.barangay = ?
+      ORDER BY c.name ASC`;
+      const [rows] = await db.query(query, [month, year, barangay]);
+      return rows;
+    }
+
     const [rows] = await db.query(
       'SELECT * FROM assessments WHERE month = ? AND year = ?',
       [month, year]
@@ -123,6 +162,13 @@ export default {
       result.total += cnt;
     });
     return result;
+  },
+
+  async updateCheckupStatus(childId, status) {
+    const validStatuses = ['Pending', 'Checked Up'];
+    if (!validStatuses.includes(status)) throw new Error('Invalid checkup status');
+    await db.query('UPDATE children SET checkup_status = ? WHERE id = ?', [status, childId]);
+    return this.getChildById(childId);
   },
 
   async countFilteredTotals(barangay, ageGroup) {

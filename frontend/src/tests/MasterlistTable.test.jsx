@@ -28,11 +28,11 @@ describe('MasterlistTable Component', () => {
     );
 
     expect(screen.getByRole('columnheader', { name: /child name/i })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: /parent \/ guardian/i })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /parent/i })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /gender/i })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /age \(mos\)/i })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /purok/i })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: /status/i })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /checkup status/i })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /action/i })).toBeInTheDocument();
 
     expect(screen.getByText('GOMEZ, JAMES ANDREI')).toBeInTheDocument();

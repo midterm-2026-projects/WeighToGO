@@ -20,7 +20,7 @@ describe('RegisterChildModal Component', () => {
     expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/gender/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/birthdate/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/parents \/ guardian/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/parent \/ guardian/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/purok/i)).toBeInTheDocument();
   });
 
@@ -43,17 +43,19 @@ describe('RegisterChildModal Component', () => {
     await user.type(screen.getByLabelText(/full name/i), 'Juan Dela Cruz');
     await user.selectOptions(screen.getByLabelText(/gender/i), 'Male');
     await user.type(screen.getByLabelText(/birthdate/i), '2026-01-15');
-    await user.type(screen.getByLabelText(/parents \/ guardian/i), 'Maria Dela Cruz');
+    await user.type(screen.getByLabelText(/parent \/ guardian/i), 'Maria Dela Cruz');
     await user.selectOptions(screen.getByLabelText(/purok/i), 'Purok 1');
 
     await user.click(screen.getByRole('button', { name: /save/i }));
 
     expect(handleSave).toHaveBeenCalledWith({
-      fullName: 'Juan Dela Cruz',
+      name: 'Juan Dela Cruz',
+      barangay: '',
+      purok: 'Purok 1',
+      parent_name: 'Maria Dela Cruz',
+      age_months: expect.any(Number),
       gender: 'Male',
       birthdate: '2026-01-15',
-      parentGuardian: 'Maria Dela Cruz',
-      purok: 'Purok 1',
     });
   });
 });

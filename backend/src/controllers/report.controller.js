@@ -7,7 +7,13 @@ export async function getMonthlyReport(req, res) {
     if (!month || !year) {
       return res.status(400).json({ success: false, error: 'Month and year are required' });
     }
-    const report = await childService.generateMonthlyReport(month, year);
+
+    let barangay = null;
+    if (req.user.role === 'Barangay Nutrition Scholar' && req.user.assignedBarangay) {
+      barangay = req.user.assignedBarangay;
+    }
+
+    const report = await childService.generateMonthlyReport(month, year, barangay);
     res.json({ success: true, data: report });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

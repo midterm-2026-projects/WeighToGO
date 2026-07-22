@@ -71,7 +71,7 @@ export default {
     return newRecord;
   },
 
-  async filterChildMasterlist(barangay, ageGroup, status) {
+  async filterChildMasterlist(barangay, ageGroup, status, name, purok, checkupStatus) {
     if (barangay && barangay !== 'All' && barangay !== 'all' && !BARANGAY_OPTIONS.includes(barangay)) {
       throw new Error('Invalid Barangay selection');
     }
@@ -83,13 +83,16 @@ export default {
     }
 
     const classification = status && status !== 'All' && status !== 'all' ? STATUS_TO_CLASSIFICATION[status] : undefined;
-    return await childModel.filterChildMasterlist(barangay, ageGroup, classification);
+    return await childModel.filterChildMasterlist(barangay, ageGroup, classification, name, purok, checkupStatus);
   },
 
-  async generateMonthlyReport(month, year) {
+  async generateMonthlyReport(month, year, barangay) {
     if (!month || !year) throw new Error('Month and year are required to generate the report');
 
-    const records = await childModel.getMonthlyReportData(month, year);
+    const records = (barangay && barangay !== 'All' && barangay !== 'all')
+      ? await childModel.getMonthlyReportData(month, year, barangay)
+      : await childModel.getMonthlyReportData(month, year);
+
     const summary = records.reduce((acc, child) => {
       acc.totalRegistered += 1;
       if (child.classification === 'normal') acc.normal += 1;
@@ -120,5 +123,10 @@ export default {
   async fetchChildHistory(id) {
     if (!id) throw new Error('Child ID is required');
     return await childModel.getChildAssessmentHistory(id);
+  },
+
+  async toggleCheckupStatus(childId, status) {
+    if (!childId) throw new Error('Child ID is required');
+    return await childModel.updateCheckupStatus(childId, status);
   }
 };

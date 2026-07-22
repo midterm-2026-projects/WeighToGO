@@ -2,9 +2,20 @@ import childService from '../service/child.service.js';
 
 export async function getAllChildren(req, res) {
   try {
-    const { barangay, ageGroup, status } = req.query;
-    if (barangay || ageGroup || status) {
-      const children = await childService.filterChildMasterlist(barangay, ageGroup, status);
+    const { barangay, ageGroup, status, name, purok, checkupStatus } = req.query;
+
+    let filterBarangay = barangay;
+    if (req.user.role === 'Barangay Nutrition Scholar' && req.user.assignedBarangay) {
+      filterBarangay = req.user.assignedBarangay;
+    }
+
+    if (filterBarangay || ageGroup || status || name || purok || checkupStatus) {
+      const filterArgs = [filterBarangay, ageGroup, status];
+      if (name !== undefined) filterArgs.push(name);
+      if (purok !== undefined) filterArgs.push(purok);
+      if (checkupStatus !== undefined) filterArgs.push(checkupStatus);
+
+      const children = await childService.filterChildMasterlist(...filterArgs);
       return res.json({ success: true, data: children });
     }
     const children = await childService.fetchMasterlist();
@@ -70,5 +81,15 @@ export async function getNutritionalTotals(req, res) {
     res.json({ success: true, data: totals });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
+  }
+}
+
+export async function toggleCheckupStatus(req, res) {
+  try {
+    const { checkup_status } = req.body;
+    const updated = await childService.toggleCheckupStatus(req.params.id, checkup_status);
+    res.json({ success: true, data: updated });
+  } catch (error) {
+    res.status(400).json({ success: false, error: error.message });
   }
 }
