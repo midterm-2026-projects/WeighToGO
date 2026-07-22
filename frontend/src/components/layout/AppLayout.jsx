@@ -2,11 +2,12 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const NAV_ITEMS = [
-  { path: '/health-trends', label: 'Health Trends', icon: '📊', roles: ['Administrator (Admin)'] },
-  { path: '/masterlist', label: 'Masterlist', icon: '📋', roles: ['Administrator (Admin)', 'Barangay Nutrition Scholar'] },
-  { path: '/health-reports', label: 'Health Reports', icon: '📑', roles: ['Administrator (Admin)'] },
-  { path: '/barangay-map', label: 'Barangay Map', icon: '🗺️', roles: ['Administrator (Admin)'] },
-  { path: '/monthly-report', label: 'Monthly Report', icon: '📅', roles: ['Barangay Nutrition Scholar'] },
+  { path: '/health-trends', label: 'Health Trends', roles: ['Administrator (Admin)'] },
+  { path: '/masterlist', label: 'Masterlist', roles: ['Administrator (Admin)'] },
+  { path: '/bns/masterlist', label: 'Masterlist', roles: ['Barangay Nutrition Scholar'] },
+  { path: '/health-reports', label: 'Health Reports', roles: ['Administrator (Admin)'] },
+  { path: '/barangay-map', label: 'Barangay Map', roles: ['Administrator (Admin)'] },
+  { path: '/monthly-report', label: 'Monthly Report', roles: ['Barangay Nutrition Scholar'] },
 ];
 
 export default function AppLayout() {

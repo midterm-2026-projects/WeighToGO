@@ -43,7 +43,7 @@ export default function AdminMasterlistPage() {
   const fetchChildren = async (params) => {
     setLoading(true);
     try {
-      const res = await api.children.list(params);
+      const res = await api.children.list({ ...params, checkupStatus: 'Checked Up' });
       setChildren(res.data || []);
     } catch (err) {
       console.error('Failed to fetch children:', err);

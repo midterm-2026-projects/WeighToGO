@@ -1,9 +1,11 @@
-export function MasterlistHeader({ onSearch, onPurokChange, onAddNewChild }) {
+export function MasterlistHeader({ onSearch, onPurokChange, onCheckupStatusChange, onAddNewChild, barangayName }) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
       <div>
         <h1 className="text-2xl font-bold text-gray-800">Children Masterlist</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage registered children in your barangay</p>
+        <p className="text-sm text-gray-500 mt-1">
+          {barangayName ? `Registered children in ${barangayName}` : 'Manage registered children in your barangay'}
+        </p>
       </div>
       <div className="flex flex-wrap items-center gap-3">
         <input
@@ -21,6 +23,14 @@ export function MasterlistHeader({ onSearch, onPurokChange, onAddNewChild }) {
           <option value="Purok 2">Purok 2</option>
           <option value="Purok 3">Purok 3</option>
           <option value="Purok 4">Purok 4</option>
+        </select>
+        <select
+          onChange={(e) => onCheckupStatusChange(e.target.value)}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+        >
+          <option value="all">All Status</option>
+          <option value="Pending">Pending</option>
+          <option value="Checked Up">Checked Up</option>
         </select>
         <button
           onClick={onAddNewChild}

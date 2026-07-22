@@ -1,35 +1,37 @@
 import assessmentModel from "../models/nutritionAssessment.model.js";
 
 const ALL_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-const ALL_WFA_STATUSES = ["Normal", "Underweight", "Severe Underweight", "Overweight", "Obese"];
-const ALL_HFA_STATUSES = ["Normal", "Stunted", "Severe Stunted"];
-const ALL_WFHL_STATUSES = ["Normal", "Wasted", "Severely Wasted", "Overweight", "Obese"];
 const ALL_CLASSIFICATIONS = ["normal", "stunted", "obese"];
 
-const STATUS_TYPE_MAP = {
-  wfa: ALL_WFA_STATUSES,
-  hfa: ALL_HFA_STATUSES,
-  wfhl: ALL_WFHL_STATUSES
-};
-
-const STATUS_FIELD_MAP = {
-  wfa: 'wfa_status',
-  hfa: 'hfa_status',
-  wfhl: 'wfhl_status'
-};
+const ALL_INDIVIDUAL_STATUSES = [
+  'Normal', 'Underweight', 'Severe Underweight', 'Overweight', 'Obese',
+  'Stunted', 'Severe Stunted', 'Wasted', 'Severely Wasted'
+];
 
 const STATUS_COLORS = {
-  wfa: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6'],
-  hfa: ['#10b981', '#f59e0b', '#ef4444'],
-  wfhl: ['#10b981', '#f59e0b', '#ef4444', '#3b82f6', '#8b5cf6']
+  'Normal': '#10b981',
+  'Underweight': '#f59e0b',
+  'Severe Underweight': '#ef4444',
+  'Overweight': '#3b82f6',
+  'Obese': '#8b5cf6',
+  'Stunted': '#f97316',
+  'Severe Stunted': '#dc2626',
+  'Wasted': '#eab308',
+  'Severely Wasted': '#b91c1c',
 };
 
 export default {
   async fetchTrendlineFilters() {
     return [
-      { label: 'Weight-for-Age (WFA)', value: 'wfa' },
-      { label: 'Height-for-Age (HFA)', value: 'hfa' },
-      { label: 'Weight-for-Length/Height (WFH/L)', value: 'wfhl' }
+      { label: 'Normal', value: 'Normal' },
+      { label: 'Underweight', value: 'Underweight' },
+      { label: 'Severe Underweight', value: 'Severe Underweight' },
+      { label: 'Overweight', value: 'Overweight' },
+      { label: 'Obese', value: 'Obese' },
+      { label: 'Stunted', value: 'Stunted' },
+      { label: 'Severe Stunted', value: 'Severe Stunted' },
+      { label: 'Wasted', value: 'Wasted' },
+      { label: 'Severely Wasted', value: 'Severely Wasted' },
     ];
   },
 
@@ -37,13 +39,17 @@ export default {
     const barangay = filters.barangay || 'all';
     const ageGroup = filters.ageGroup || 'all';
     const statusType = filters.statusType || 'wfa';
+    const statusesParam = filters.statuses || '';
+
+    const activeStatuses = statusesParam
+      ? statusesParam.split(',').filter(s => ALL_INDIVIDUAL_STATUSES.includes(s))
+      : ['Normal', 'Underweight', 'Overweight', 'Obese'];
 
     const records = await assessmentModel.getFilteredAssessments(barangay, ageGroup);
     if (!records) throw new Error("Failed to retrieve nutrition assessments");
 
-    const activeStatuses = STATUS_TYPE_MAP[statusType] || ALL_WFA_STATUSES;
-    const statusField = STATUS_FIELD_MAP[statusType] || 'wfa_status';
-    const colors = STATUS_COLORS[statusType] || STATUS_COLORS.wfa;
+    const statusFieldMap = { wfa: 'wfa_status', hfa: 'hfa_status', wfhl: 'wfhl_status' };
+    const targetFields = statusType === 'all' ? Object.values(statusFieldMap) : [statusFieldMap[statusType]];
 
     const trendData = {};
     ALL_MONTHS.forEach(month => {
@@ -52,18 +58,25 @@ export default {
     });
 
     records.forEach(record => {
-      const statusValue = record[statusField];
-      if (trendData[record.month] && activeStatuses.includes(statusValue)) {
-        trendData[record.month][statusValue] += 1;
-      }
+      const month = record.month;
+      if (!trendData[month]) return;
+
+      const seen = new Set();
+      targetFields.forEach(field => {
+        const val = record[field];
+        if (activeStatuses.includes(val) && !seen.has(val)) {
+          seen.add(val);
+          trendData[month][val] += 1;
+        }
+      });
     });
 
     return {
       categories: ALL_MONTHS,
-      series: activeStatuses.map((status, idx) => ({
+      series: activeStatuses.map(status => ({
         name: status,
         data: ALL_MONTHS.map(month => trendData[month][status]),
-        color: colors[idx % colors.length]
+        color: STATUS_COLORS[status] || '#6b7280'
       }))
     };
   },

@@ -35,12 +35,6 @@ function FitBounds({ data }) {
   return null;
 }
 
-function getRiskDetails(cases) {
-  if (cases >= 30) return { level: 'High Risk', color: '#ef4444' };
-  if (cases >= 15) return { level: 'Moderate Risk', color: '#eab308' };
-  return { level: 'Low Risk', color: '#22c55e' };
-}
-
 export default function BarangayMap({ initialData }) {
   const [mapData, setMapData] = useState(initialData || []);
   const [selectedBarangay, setSelectedBarangay] = useState(null);
@@ -94,8 +88,8 @@ export default function BarangayMap({ initialData }) {
             const lat = Number(barangay.coordinates.lat);
             const lng = Number(barangay.coordinates.lng);
             if (!lat || !lng) return null;
-            const risk = getRiskDetails(barangay.cases);
-            const markerColor = barangay.color || risk.color;
+            const markerColor = barangay.color || '#22c55e';
+            const riskLabel = barangay.riskLevel || 'Low Risk';
             return (
               <Marker
                 key={barangay.id}
@@ -116,7 +110,7 @@ export default function BarangayMap({ initialData }) {
                     </div>
                     <div className="mt-1">
                       <span className="text-xs font-medium" style={{ color: markerColor }}>
-                        {risk.level}
+                        {riskLabel}
                       </span>
                     </div>
                   </div>
@@ -129,7 +123,6 @@ export default function BarangayMap({ initialData }) {
         <MapSidePanel
           barangay={selectedBarangay}
           onClose={() => setSelectedBarangay(null)}
-          getRiskDetails={getRiskDetails}
         />
       </div>
     </div>

@@ -28,7 +28,8 @@ export async function login(email, role, password, database = []) {
     success: true,
     token: generatedToken,
     role: user.role,
-    redirectTo: "/masterlist"
+    assignedBarangay: user.assignedBarangay || null,
+    redirectTo: user.role === 'Barangay Nutrition Scholar' ? '/bns/masterlist' : '/health-trends'
   };
 }
 

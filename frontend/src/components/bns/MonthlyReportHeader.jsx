@@ -10,7 +10,7 @@ export function MonthlyReportHeader({
   const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 
   const kpiCards = [
-    { label: 'Total Registered', value: summary.totalRegistered, bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
+    { label: 'Total Assessed', value: summary.totalRegistered, bg: 'bg-emerald-50', text: 'text-emerald-700', border: 'border-emerald-200' },
     { label: 'Normal', value: summary.normal, bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-200' },
     { label: 'Stunted', value: summary.stunted, bg: 'bg-amber-50', text: 'text-amber-700', border: 'border-amber-200' },
     { label: 'Obese', value: summary.obese, bg: 'bg-rose-50', text: 'text-rose-700', border: 'border-rose-200' },

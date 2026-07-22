@@ -32,6 +32,7 @@ CREATE TABLE IF NOT EXISTS children (
   classification ENUM('normal', 'stunted', 'obese') DEFAULT 'normal',
   weight DECIMAL(5, 2) DEFAULT NULL,
   height DECIMAL(5, 2) DEFAULT NULL,
+  checkup_status ENUM('Pending', 'Checked Up') NOT NULL DEFAULT 'Pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

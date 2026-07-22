@@ -20,7 +20,7 @@ test.describe('Full User Journey', () => {
     // ============================================================
     // 2. NAVIGATE TO HEALTH TRENDS & TEST FILTERS
     // ============================================================
-    await page.getByText('Health Trends').click();
+    await page.getByRole('button', { name: /Health Trends/ }).click();
     await page.waitForURL('**/health-trends', { timeout: 10000 });
 
     // Verify page title renders

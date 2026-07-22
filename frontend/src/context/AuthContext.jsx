@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
     const res = await api.auth.login(role, email, password);
     localStorage.setItem('token', res.token);
     setToken(res.token);
-    setUser({ email, role: res.role, redirectTo: res.redirectTo });
+    setUser({ email, role: res.role, assignedBarangay: res.assignedBarangay || null, redirectTo: res.redirectTo });
     return res;
   };
 

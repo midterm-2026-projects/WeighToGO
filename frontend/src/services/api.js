@@ -31,6 +31,7 @@ export const api = {
     create: (data) => request('/children', { method: 'POST', body: JSON.stringify(data) }),
     assess: (id, data) => request(`/children/${id}/assessment`, { method: 'PUT', body: JSON.stringify(data) }),
     history: (id) => request(`/children/${id}/history`),
+    checkup: (id, status) => request(`/children/${id}/checkup`, { method: 'PUT', body: JSON.stringify({ checkup_status: status }) }),
     filters: () => request('/children/filters'),
     totals: (params) => {
       const query = new URLSearchParams(params).toString();
