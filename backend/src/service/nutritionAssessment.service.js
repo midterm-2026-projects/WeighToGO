@@ -23,15 +23,9 @@ const STATUS_COLORS = {
 export default {
   async fetchTrendlineFilters() {
     return [
-      { label: 'Normal', value: 'Normal' },
-      { label: 'Underweight', value: 'Underweight' },
-      { label: 'Severe Underweight', value: 'Severe Underweight' },
-      { label: 'Overweight', value: 'Overweight' },
-      { label: 'Obese', value: 'Obese' },
-      { label: 'Stunted', value: 'Stunted' },
-      { label: 'Severe Stunted', value: 'Severe Stunted' },
-      { label: 'Wasted', value: 'Wasted' },
-      { label: 'Severely Wasted', value: 'Severely Wasted' },
+      { label: 'Weight-for-Age (WFA)', value: 'wfa' },
+      { label: 'Height-for-Age (HFA)', value: 'hfa' },
+      { label: 'Weight-for-Length/Height (WFH/L)', value: 'wfhl' }
     ];
   },
 
@@ -43,7 +37,7 @@ export default {
 
     const activeStatuses = statusesParam
       ? statusesParam.split(',').filter(s => ALL_INDIVIDUAL_STATUSES.includes(s))
-      : ['Normal', 'Underweight', 'Overweight', 'Obese'];
+      : ['Normal', 'Underweight', 'Severe Underweight', 'Overweight', 'Obese'];
 
     const records = await assessmentModel.getFilteredAssessments(barangay, ageGroup);
     if (!records) throw new Error("Failed to retrieve nutrition assessments");

@@ -78,7 +78,9 @@ export default function MasterlistPage() {
 
   const handleAssessmentSubmit = async (childId, assessmentData) => {
     try {
-      await api.children.assess(childId, assessmentData);
+      console.log('DEBUG: MasterlistPage submitting assessment for', childId, assessmentData);
+      const res = await api.children.assess(childId, assessmentData);
+      console.log('DEBUG: MasterlistPage assess response', res);
       setIsManageOpen(false);
       setSelectedChild(null);
       fetchChildren();

@@ -86,9 +86,9 @@ test.describe('Full User Journey', () => {
     await page.waitForTimeout(1000);
 
     // Verify the side panel opened with barangay details
-    await expect(page.locator('text=Registered Children')).toBeVisible();
-    await expect(page.locator('text=Nutritional Status Breakdown')).toBeVisible();
-    await expect(page.locator('text=Health Insight')).toBeVisible();
+    await expect(page.getByText('Registered Children', { exact: true })).toBeVisible();
+    await expect(page.getByText('Nutritional Status Breakdown', { exact: true })).toBeVisible();
+    await expect(page.getByText('Health Insight', { exact: true })).toBeVisible();
 
     // Close the side panel
     await page.click('button:has-text("✕")');

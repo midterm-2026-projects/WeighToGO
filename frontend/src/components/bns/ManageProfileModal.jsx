@@ -127,12 +127,11 @@ export function ManageProfileModal({ isOpen, onClose, childRecord, onAssessmentS
       setAlreadyAssessed(childRecord.checkup_status === 'Checked Up');
     }
   }, [isOpen, childRecord]);
-
   const fetchHistory = async () => {
     setHistoryLoading(true);
     try {
-      const res = await api.children.history(childRecord.id);
-      setHistory(res.data || []);
+      const res = await api.children.history(childRecord?.id);
+      setHistory(res?.data || []);
     } catch (err) {
       console.error('Failed to fetch history:', err);
     } finally {
@@ -146,13 +145,19 @@ export function ManageProfileModal({ isOpen, onClose, childRecord, onAssessmentS
     }
   }, [activeTab, childRecord]);
 
+  const parentName = childRecord?.parent_name || childRecord?.parent || '—';
+  const ageMonths = childRecord?.age_months ?? childRecord?.age ?? '—';
+
+  if (!isOpen || !childRecord) return null;
+
   const handleCompute = () => {
     const w = parseFloat(weight);
     const h = parseFloat(height);
     if (!w || !h || !childRecord) return;
 
-    const wfa = computeWFA(childRecord.age_months, w, childRecord.gender);
-    const hfa = computeHFA(childRecord.age_months, h, childRecord.gender);
+    const ageMonths = childRecord.age_months ?? childRecord.age;
+    const wfa = computeWFA(ageMonths, w, childRecord.gender);
+    const hfa = computeHFA(ageMonths, h, childRecord.gender);
     const wfhl = computeWFHL(h, w, childRecord.gender);
     const classification = computeClassification(wfa, hfa, wfhl);
 
@@ -164,6 +169,7 @@ export function ManageProfileModal({ isOpen, onClose, childRecord, onAssessmentS
     setSubmitting(true);
     const now = new Date();
     const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    console.log('DEBUG: calling onAssessmentSubmit for child', childRecord?.id, { weight: computed.weight, height: computed.height });
     await onAssessmentSubmit(childRecord.id, {
       weight: computed.weight,
       height: computed.height,
@@ -177,8 +183,6 @@ export function ManageProfileModal({ isOpen, onClose, childRecord, onAssessmentS
     setSubmitting(false);
   };
 
-  if (!isOpen || !childRecord) return null;
-
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl max-w-lg w-full shadow-xl border border-gray-100 overflow-hidden max-h-[90vh] flex flex-col">
@@ -190,10 +194,11 @@ export function ManageProfileModal({ isOpen, onClose, childRecord, onAssessmentS
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-lg font-bold text-emerald-900 uppercase truncate">{childRecord.name}</h3>
-            <p className="text-xs text-gray-500 mt-0.5">{childRecord.purok} | Age: {childRecord.age_months} mos | {childRecord.gender}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{childRecord.purok} | Age: {ageMonths} mos | {childRecord.gender}</p>
           </div>
           <button
             onClick={onClose}
+            aria-label="Close"
             className="text-gray-400 hover:text-gray-600 rounded-lg p-1 hover:bg-gray-100 transition-colors"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +232,7 @@ export function ManageProfileModal({ isOpen, onClose, childRecord, onAssessmentS
             <>
               <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block mb-1">Parent / Caregiver</span>
-                <span className="text-sm font-semibold text-gray-700 uppercase">{childRecord.parent_name}</span>
+                <span className="text-sm font-semibold text-gray-700 uppercase">{parentName}</span>
               </div>
               <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-xs grid grid-cols-2 gap-3">
                 <div>
@@ -236,7 +241,7 @@ export function ManageProfileModal({ isOpen, onClose, childRecord, onAssessmentS
                 </div>
                 <div>
                   <span className="text-xs text-gray-500">Age</span>
-                  <p className="font-medium text-gray-800">{childRecord.age_months} months</p>
+                  <p className="font-medium text-gray-800">{ageMonths ?? '—'} months</p>
                 </div>
                 <div>
                   <span className="text-xs text-gray-500">Birthdate</span>
@@ -295,8 +300,9 @@ export function ManageProfileModal({ isOpen, onClose, childRecord, onAssessmentS
                     <span className="text-xs font-bold text-gray-400 uppercase tracking-widest block">New Monthly Assessment</span>
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Weight (kg)</label>
+                        <label htmlFor="weight" className="block text-xs font-medium text-gray-600 mb-1">Weight (kg)</label>
                         <input
+                          id="weight"
                           type="number"
                           step="0.1"
                           min="0"
@@ -307,8 +313,9 @@ export function ManageProfileModal({ isOpen, onClose, childRecord, onAssessmentS
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-medium text-gray-600 mb-1">Height (cm)</label>
+                        <label htmlFor="height" className="block text-xs font-medium text-gray-600 mb-1">Height (cm)</label>
                         <input
+                          id="height"
                           type="number"
                           step="0.1"
                           min="0"

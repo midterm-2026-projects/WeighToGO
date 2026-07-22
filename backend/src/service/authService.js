@@ -29,7 +29,7 @@ export async function login(email, role, password, database = []) {
     token: generatedToken,
     role: user.role,
     assignedBarangay: user.assignedBarangay || null,
-    redirectTo: user.role === 'Barangay Nutrition Scholar' ? '/bns/masterlist' : '/health-trends'
+    redirectTo: '/masterlist'
   };
 }
 

@@ -82,19 +82,19 @@ export default {
     const month = updateData.month || new Date().toLocaleString('en-US', { month: 'short' });
     const year = updateData.year || new Date().getFullYear();
 
-    const exists = await this.hasAssessmentThisMonth(childId, month, year);
-    if (exists) {
-      throw new Error(`Assessment for ${month} ${year} already exists. Cannot assess the same child twice in one month.`);
-    }
+    const updatedWfaStatus = updateData.wfa_status || child.wfa_status;
+    const updatedHfaStatus = updateData.hfa_status || child.hfa_status;
+    const updatedWfhlStatus = updateData.wfhl_status || child.wfhl_status;
+    const updatedClassification = updateData.classification || child.classification;
 
     await db.query(
       `UPDATE children SET weight = ?, height = ?, wfa_status = ?, hfa_status = ?, wfhl_status = ?, classification = ? WHERE id = ?`,
       [
         updateData.weight, updateData.height,
-        updateData.wfa_status || child.wfa_status,
-        updateData.hfa_status || child.hfa_status,
-        updateData.wfhl_status || child.wfhl_status,
-        updateData.classification || child.classification,
+        updatedWfaStatus,
+        updatedHfaStatus,
+        updatedWfhlStatus,
+        updatedClassification,
         childId
       ]
     );
@@ -105,16 +105,11 @@ export default {
       [
         childId, month, year,
         updateData.weight, updateData.height,
-        updateData.wfa_status || child.wfa_status,
-        updateData.hfa_status || child.hfa_status,
-        updateData.wfhl_status || child.wfhl_status,
-        updateData.classification || child.classification
+        updatedWfaStatus,
+        updatedHfaStatus,
+        updatedWfhlStatus,
+        updatedClassification
       ]
-    );
-
-    await db.query(
-      `UPDATE children SET checkup_status = 'Checked Up' WHERE id = ?`,
-      [childId]
     );
 
     return this.getChildById(childId);
@@ -129,19 +124,20 @@ export default {
   },
 
   async getMonthlyReportData(month, year, barangay) {
-    let query = `SELECT a.*, c.name AS child_name, c.barangay, c.purok, c.parent_name, c.gender, c.age_months
+    if (barangay && barangay !== 'All' && barangay !== 'all') {
+      const query = `SELECT a.*, c.name AS child_name, c.barangay, c.purok, c.parent_name, c.gender, c.age_months
       FROM assessments a
       JOIN children c ON a.child_id = c.id
-      WHERE a.month = ? AND a.year = ?`;
-    const params = [month, year];
-
-    if (barangay) {
-      query += ' AND c.barangay = ?';
-      params.push(barangay);
+      WHERE a.month = ? AND a.year = ? AND c.barangay = ?
+      ORDER BY c.name ASC`;
+      const [rows] = await db.query(query, [month, year, barangay]);
+      return rows;
     }
 
-    query += ' ORDER BY c.name ASC';
-    const [rows] = await db.query(query, params);
+    const [rows] = await db.query(
+      'SELECT * FROM assessments WHERE month = ? AND year = ?',
+      [month, year]
+    );
     return rows;
   },
 

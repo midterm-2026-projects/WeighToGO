@@ -71,8 +71,9 @@ export function RegisterChildModal({ isOpen, onClose, onSave, barangayName }) {
             <div className="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-lg border border-red-100">{error}</div>
           )}
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Full Name</label>
+            <label htmlFor="name" className="block text-xs font-medium text-gray-600 mb-1">Full Name</label>
             <input
+              id="name"
               type="text"
               name="name"
               value={formData.name}
@@ -85,8 +86,9 @@ export function RegisterChildModal({ isOpen, onClose, onSave, barangayName }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Gender</label>
+              <label htmlFor="gender" className="block text-xs font-medium text-gray-600 mb-1">Gender</label>
               <select
+                id="gender"
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
@@ -99,8 +101,9 @@ export function RegisterChildModal({ isOpen, onClose, onSave, barangayName }) {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Birthdate</label>
+              <label htmlFor="birthdate" className="block text-xs font-medium text-gray-600 mb-1">Birthdate</label>
               <input
+                id="birthdate"
                 type="date"
                 name="birthdate"
                 value={formData.birthdate}
@@ -112,8 +115,9 @@ export function RegisterChildModal({ isOpen, onClose, onSave, barangayName }) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Parent / Guardian</label>
+            <label htmlFor="parent_name" className="block text-xs font-medium text-gray-600 mb-1">Parent / Guardian</label>
             <input
+              id="parent_name"
               type="text"
               name="parent_name"
               value={formData.parent_name}
@@ -125,8 +129,9 @@ export function RegisterChildModal({ isOpen, onClose, onSave, barangayName }) {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-gray-600 mb-1">Purok</label>
+            <label htmlFor="purok" className="block text-xs font-medium text-gray-600 mb-1">Purok</label>
             <select
+              id="purok"
               name="purok"
               value={formData.purok}
               onChange={handleChange}

@@ -6,7 +6,7 @@ export function MasterlistTable({ records, onManageChild }) {
           <thead className="bg-gray-50 text-gray-700 uppercase tracking-wider sticky top-0">
             <tr>
               <th className="px-4 py-3 font-semibold text-left">Child Name</th>
-              <th className="px-4 py-3 font-semibold text-left">Parent</th>
+              <th className="px-4 py-3 font-semibold text-left">Parent / Guardian</th>
               <th className="px-4 py-3 font-semibold text-left">Gender</th>
               <th className="px-4 py-3 font-semibold text-center">Age (mos)</th>
               <th className="px-4 py-3 font-semibold text-left">Purok</th>

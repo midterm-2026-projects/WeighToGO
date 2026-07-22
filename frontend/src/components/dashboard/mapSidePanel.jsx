@@ -12,7 +12,7 @@ export default function MapSidePanel({ barangay, onClose }) {
         return `Needs attention. ${cases} nutritional case${cases !== 1 ? 's' : ''} recorded (${caseRate}% of registered children). Early intervention and supplementary feeding programs are recommended.`;
       case 'Low Risk':
       default:
-        return `Great job! Only ${cases} nutritional case${cases !== 1 ? 's' : ''} recorded (${caseRate}% of registered children). This barangay maintains a good nutritional status. Continue standard monitoring.`;
+        return `Great job! This barangay maintains a normal nutritional status. Only ${cases} nutritional case${cases !== 1 ? 's' : ''} recorded (${caseRate}% of registered children). Continue standard monitoring.`;
     }
   };
 
@@ -52,7 +52,7 @@ export default function MapSidePanel({ barangay, onClose }) {
 
           <div className="grid grid-cols-2 gap-3 mb-6">
             <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 text-center shadow-sm">
-              <p className="text-xs text-gray-500 font-medium">Registered</p>
+              <p className="text-xs text-gray-500 font-medium">Registered Children</p>
               <p className="text-2xl font-bold text-blue-600 mt-1">{barangay.registeredChildren}</p>
             </div>
             <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 text-center shadow-sm">

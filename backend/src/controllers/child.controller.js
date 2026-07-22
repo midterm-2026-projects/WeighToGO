@@ -10,7 +10,12 @@ export async function getAllChildren(req, res) {
     }
 
     if (filterBarangay || ageGroup || status || name || purok || checkupStatus) {
-      const children = await childService.filterChildMasterlist(filterBarangay, ageGroup, status, name, purok, checkupStatus);
+      const filterArgs = [filterBarangay, ageGroup, status];
+      if (name !== undefined) filterArgs.push(name);
+      if (purok !== undefined) filterArgs.push(purok);
+      if (checkupStatus !== undefined) filterArgs.push(checkupStatus);
+
+      const children = await childService.filterChildMasterlist(...filterArgs);
       return res.json({ success: true, data: children });
     }
     const children = await childService.fetchMasterlist();
